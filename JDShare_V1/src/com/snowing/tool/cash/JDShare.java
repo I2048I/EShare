@@ -39,9 +39,6 @@ public class JDShare {
 	static JPanel panel = new JPanel();
 	public static Dimension ScreenSize = Toolkit.getDefaultToolkit().getScreenSize();
 	
-	//**********THREAD DEFINE*********//
-	AutoSave autosave = new AutoSave();
-	
 	public JDShare() {
 		frame.getContentPane().add(panel);
 		frame.setTitle("推广联盟V1 载入->京东配置");
@@ -49,7 +46,6 @@ public class JDShare {
 		frame.setVisible(false);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
-		autosave.start();
 		Ui.load();
 	}
 	
