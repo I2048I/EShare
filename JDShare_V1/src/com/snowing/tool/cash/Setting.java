@@ -1,5 +1,10 @@
 package com.snowing.tool.cash;
 
+import java.awt.Desktop;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+
 import javax.swing.JOptionPane;
 
 import cn.snowing.io.Filer;
@@ -19,7 +24,7 @@ public class Setting {
 						if(data[i].split("=")[0].equals("version")&&JDShare.CoreVersion<Integer.parseInt(data[i].split("=")[1])) {    //排除版本问题
 							//版本不匹配,采用无设置启动
 							Ui.lblNewLabel_6.setText("配置载入失败...");
-							JOptionPane.showMessageDialog(Ui.loadFrame,"配置版本不匹配，将采用无设置启动");
+							JOptionPane.showMessageDialog(Ui.loadFrame,"配置版本不匹配，将采用无配置启动");
 							return true;
 						} else {
 							//一切正常,开始录入设置
@@ -53,14 +58,14 @@ public class Setting {
 			file.createNewFile(dataURL);
 		}
 		file.write(dataURL, "#!SETTING", false);
-		file.write(dataURL, "version"+JDShare.CoreVersion, true);
-		file.write(dataURL, "CSVUrl"+JDShare.CSVUrl, true);
-		file.write(dataURL, "enableSmartReformat"+JDShare.enableSmartReformat, true);
-		file.write(dataURL, "enableAutoRemoveSame"+JDShare.enableAutoRemoveSame, true);
-		file.write(dataURL, "leastRepayPoint"+JDShare.leastRepayPoint, true);
-		file.write(dataURL, "leastItemPrice"+JDShare.leastItemPrice, true);
-		file.write(dataURL, "highestItemPrice"+JDShare.highestItemPrice, true);
-		return false;
+		file.write(dataURL, "version="+JDShare.CoreVersion, true);
+		file.write(dataURL, "CSVUrl="+JDShare.CSVUrl, true);
+		file.write(dataURL, "enableSmartReformat="+JDShare.enableSmartReformat, true);
+		file.write(dataURL, "enableAutoRemoveSame="+JDShare.enableAutoRemoveSame, true);
+		file.write(dataURL, "leastRepayPoint="+JDShare.leastRepayPoint, true);
+		file.write(dataURL, "leastItemPrice="+JDShare.leastItemPrice, true);
+		file.write(dataURL, "highestItemPrice="+JDShare.highestItemPrice, true);
+		return true;
 	}
 	
 	private static void checkSettingStatue() {
@@ -81,5 +86,37 @@ public class Setting {
 			file.copy(new HostOS().getUserHome()+"\\conf\\default_setting.conf", dataURL, false);
 		}
 		
+	}
+}
+
+class AutoSave extends Thread {
+	boolean missFailed = false;
+	public void run() {
+		while(true) {
+			boolean isfine = Setting.saveSetting();
+			if(!isfine&&!missFailed) {
+				Object[] options = {"查看原因","忽略"};
+				int Choose = JOptionPane.showOptionDialog(JDShare.frame,"保存设置失败!!!","错误", JOptionPane.ERROR_MESSAGE,
+						JOptionPane.ERROR_MESSAGE, null,options,options[1]);
+				if(Choose==0) {
+					Desktop dp =Desktop.getDesktop();
+					try {
+						URI url = new URI("https://github.com/I2048I/JDShare/blob/master/FailedSaveSetting.md");
+						dp.browse(url);
+					} catch (IOException | URISyntaxException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				} else {
+					missFailed = true;
+				}
+			}
+			try {
+				Thread.sleep(JDShare.autosaveTime);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 	}
 }

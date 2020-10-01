@@ -32,10 +32,15 @@ public class JDShare {
 	static int leastItemPrice = 0;//目标商品最低价格
 	static int highestItemPrice = 0;//目标商品最高价格
 	public static String tempURL = new HostOS().getUserHome()+"//tmp//";//缓存文件目录位置
+	static int autosaveTime = 1000;//自动保存时间(默认1000ms)
 	
+	//*************GUI*****************//
 	static JFrame frame = new JFrame();
 	static JPanel panel = new JPanel();
 	public static Dimension ScreenSize = Toolkit.getDefaultToolkit().getScreenSize();
+	
+	//**********THREAD DEFINE*********//
+	AutoSave autosave = new AutoSave();
 	
 	public JDShare() {
 		frame.getContentPane().add(panel);
@@ -43,8 +48,9 @@ public class JDShare {
 		frame.setBounds(ScreenSize.width / 2 - 600 / 2, ScreenSize.height / 2 - 400 / 2, 600, 400);
 		frame.setVisible(false);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-		 Ui.load();
+		
+		autosave.start();
+		Ui.load();
 	}
 	
 	public static void updateItem(String[] itemData) {

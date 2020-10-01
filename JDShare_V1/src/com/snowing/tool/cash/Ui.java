@@ -42,12 +42,14 @@ import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import cn.snowing.io.Filer;
 import net.miginfocom.swing.MigLayout;
 
 public class Ui extends JDShare{
 
 	final public static String Version = "V1.0.0_200905";
 	
+	static Filer file = new Filer();
 	static private Dimension ScreenSize = Toolkit.getDefaultToolkit().getScreenSize();
 	static Resources res = new Resources();
 
@@ -64,6 +66,8 @@ public class Ui extends JDShare{
 	
 	static boolean loaded = false;
 	static boolean SKUloaded = false;//是否加载完成SKU读取操作
+	//**********THREAD DEFINE*********//
+	static AutoSave autosave = new AutoSave();
 
 	public static void load() {
 		frame.setVisible(false);
@@ -120,6 +124,7 @@ public class Ui extends JDShare{
 					updateItem(itemInfo);
 				}
 				loaded = Setting.loadSetting();
+				autosave.start();
 			}
 		}, 10);
 
@@ -218,17 +223,21 @@ public class Ui extends JDShare{
 		JButton btnNewButton_5 = new JButton("\u5EFA\u7ACB\u6570\u636E\u5E93");
 		btnNewButton_5.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				DataBase.buildCSVData(CSVUrl);
-				if(DataBase.getEnableItemsNum()>0) {
-					copyableItems = DataBase.getEnableItemsNum();
-					String[] itemInfo = DataBase.getEnableItem();
-					updateItem(itemInfo);
+				if(!file.isEmpty(CSVUrl)) {
+					DataBase.buildCSVData(CSVUrl);
+					if(DataBase.getEnableItemsNum()>0) {
+						copyableItems = DataBase.getEnableItemsNum();
+						String[] itemInfo = DataBase.getEnableItem();
+						updateItem(itemInfo);
+					} else {
+						copyableItems = 0;
+						String[] emptyItemInfo = new String[7];
+						updateItem(emptyItemInfo);
+					}
+					labelReflash();
 				} else {
-					copyableItems = 0;
-					String[] emptyItemInfo = {"","","","","","",""};
-					updateItem(emptyItemInfo);
+					JOptionPane.showMessageDialog(frame, "目标CSV文件不存在", "错误", JOptionPane.ERROR_MESSAGE);
 				}
-				labelReflash();
 			}
 		});
 		btnNewButton_5.setFont(new Font("黑体", Font.PLAIN, 15));
