@@ -31,7 +31,7 @@ public class Setting {
 							Ui.lblNewLabel_6.setText("º”‘ÿ≈‰÷√÷–...");
 							String item = data[i].split("=")[0];
 							String set = data[i].split("=")[1];
-							EShare.CSVUrl = "".equals(EShare.CSVUrl) ? ("CSVUrl".equals(item) ? set : "") : EShare.CSVUrl;
+							EShare.dataUrl = "".equals(EShare.dataUrl) ? ("dataUrl".equals(item) ? set : "") : EShare.dataUrl;
 							EShare.enableSmartReformat = false == EShare.enableSmartReformat ? ("enableSmartReformat".equals(item) ? Boolean.parseBoolean(set) : false) : EShare.enableSmartReformat;
 							EShare.enableAutoRemoveSame = false == EShare.enableAutoRemoveSame ? ("enableAutoRemoveSame".equals(item) ? Boolean.parseBoolean(set) : false) : EShare.enableAutoRemoveSame;
 							EShare.leastRepayPoint = 0 == EShare.leastRepayPoint ? ("leastRepayPoint".equals(item) ? Integer.parseInt(set) : 0) : EShare.leastRepayPoint;
@@ -61,7 +61,7 @@ public class Setting {
 		}
 		file.write(dataURL, "#!SETTING", false);
 		file.write(dataURL, "version="+EShare.CoreVersion, true);
-		file.write(dataURL, "CSVUrl="+EShare.CSVUrl, true);
+		file.write(dataURL, "dataUrl="+EShare.dataUrl, true);
 		file.write(dataURL, "enableSmartReformat="+EShare.enableSmartReformat, true);
 		file.write(dataURL, "enableAutoRemoveSame="+EShare.enableAutoRemoveSame, true);
 		file.write(dataURL, "leastRepayPoint="+EShare.leastRepayPoint, true);

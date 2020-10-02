@@ -9,45 +9,65 @@ import cn.snowing.system.HostOS;
 
 public class DataBase {
 	
-	final public static String Version = "V1.0.0_200904";
+	final public static String Version = "V1.0.0_201002";
 	
 	public static String dataUrl = new HostOS().getUserHome()+"//db//";
-	public static String debugUrl = new HostOS().getUserHome()+"//db//jd.db";
+	public static String databaseUrl = new HostOS().getUserHome()+"//db//eshare.db";
 	
 	static Filer file = new Filer();
 	static Text text = new Text();
 	
-	public static void buildCSVData(String url) {
+	public static void buildCSVData(String url, String platform) {
 		if(!file.isExists(dataUrl)) {
 			file.mkdir(dataUrl);
-			file.createNewFile(debugUrl);
-		} else if(file.isExists(dataUrl)&&!file.isExists(debugUrl)) {
-			file.createNewFile(debugUrl);
+			file.createNewFile(databaseUrl);
+		} else if(file.isExists(dataUrl)&&!file.isExists(databaseUrl)) {
+			file.createNewFile(databaseUrl);
 		}
-		if(file.isEmpty(debugUrl)) {
+		if(file.isEmpty(databaseUrl)) {
 			for(String line : file.getAllLineString(url)) {
 				String[] info = line.replace("\t", "").split(",");
-				String itemName = info[0];
-				String itemSourcesUrl = info[1];
-				String itemPrice = info[3];
-				String itemRepayPencent = info[4];
-				String itemRepay = info[5];
-				String itemURL = info[6];
-				if(info.length==8&&!"商品名称".equals(itemName)) {
-					String itemDiscountURL = info[7];
-					itemName = Rebuild.itemName(itemName);
-					String itemID = itemSourcesUrl = itemSourcesUrl.replace("	", "").replace("http://item.jd.com/", "").replace(".html", "");
-					file.write(debugUrl, itemID+","+itemName+","+itemPrice+","+itemRepayPencent+","+itemRepay+","+itemURL+","+itemDiscountURL+","+"o", true);
+				if(platform.equals("JD")) {
+					String itemName = info[0];
+					String itemSourcesUrl = info[1];
+					String itemPrice = info[3];
+					String itemRepayPencent = info[4];
+					String itemRepay = info[5];
+					String itemURL = info[6];
+					if(info.length==8&&!"商品名称".equals(itemName)) {
+						String itemDiscountURL = info[7];
+						itemName = Rebuild.itemName(itemName);
+						String itemID = "J"+itemSourcesUrl.replace("	", "").replace("http://item.jd.com/", "").replace(".html", "");
+						file.write(databaseUrl, itemID+","+itemName+","+itemPrice+","+itemRepayPencent+","+itemRepay+","+itemURL+","+itemDiscountURL+","+"o", true);
+					}
+				} else if(platform.equals("TB")){
+					String itemID = "T"+info[0];
+					String itemName = info[1];
+					String itemPrice = info[5];
+					String itemRepayPencent = info[7];
+					String itemRepay = info[8];
+					if(!"T商品id".equals(itemID)) {
+						String itemTaoKey = info[19];
+						System.out.println(itemTaoKey);
+						itemTaoKey = "￥"+itemTaoKey.split("￥")[1]+"￥";
+						itemName = Rebuild.itemName(itemName);
+						file.write(databaseUrl, itemID+","+itemName+","+itemPrice+","+itemRepayPencent+","+itemRepay+","+itemTaoKey+","+"o", true);
+					}
 				}
+				
 			}
 		} else {
-			String[] id = new String[(int)file.getLine(debugUrl)];
+			String[] id = new String[(int)file.getLine(databaseUrl)];
 			for(int i=0;i<id.length;i++) {
-				id[i] = file.getLineString(debugUrl, i+1).split(",")[0];
+				id[i] = file.getLineString(databaseUrl, i+1).split(",")[0];
 			}
 			String[] csvid = new String[(int)file.getLine(url)-1];
 			for(int i=0;i<csvid.length;i++) {
-				csvid[i] = file.getLineString(url, i+2).split(",")[1].replace("	", "").replace("http://item.jd.com/", "").replace(".html", "");
+				if(platform.equals("JD")) {
+					csvid[i] = "J"+file.getLineString(url, i+2).split(",")[1].replace("	", "").replace("http://item.jd.com/", "").replace(".html", "");
+				} else if(platform.equals("TB")) {
+					csvid[i] = "T"+file.getLineString(url, i+2).split(",")[0];
+				}
 			}
 			List<String> usefulLine = new ArrayList<String>();
 			for(int i=0;i<csvid.length;i++) {
@@ -67,17 +87,31 @@ public class DataBase {
 			}
 			for(int i=0;i<usefulLine_int.length;i++) {
 				String[] info = file.getLineString(url, usefulLine_int[i]).replace("\t", "").split(",");
-				String itemName = info[0];
-				String itemSourcesUrl = info[1];
-				String itemPrice = info[3];
-				String itemRepayPencent = info[4];
-				String itemRepay = info[5];
-				String itemURL = info[6];
-				if(info.length==8&&!"商品名称".equals(itemName)) {
-					String itemDiscountURL = info[7];
-					itemName = Rebuild.itemName(itemName);
-					String itemID = itemSourcesUrl = itemSourcesUrl.replace("	", "").replace("http://item.jd.com/", "").replace(".html", "");
-					file.write(debugUrl, itemID+","+itemName+","+itemPrice+","+itemRepayPencent+","+itemRepay+","+itemURL+","+itemDiscountURL+","+"o", true);
+				if(platform.equals("JD")) {
+					String itemName = info[0];
+					String itemSourcesUrl = info[1];
+					String itemPrice = info[3];
+					String itemRepayPencent = info[4];
+					String itemRepay = info[5];
+					String itemURL = info[6];
+					if(info.length==8&&!"商品名称".equals(itemName)) {
+						String itemDiscountURL = info[7];
+						itemName = Rebuild.itemName(itemName);
+						String itemID = "J"+itemSourcesUrl.replace("	", "").replace("http://item.jd.com/", "").replace(".html", "");
+						file.write(databaseUrl, itemID+","+itemName+","+itemPrice+","+itemRepayPencent+","+itemRepay+","+itemURL+","+itemDiscountURL+","+"o", true);
+					}
+				} else if(platform.equals("TB")){
+					String itemID = "T"+info[0];
+					String itemName = info[1];
+					String itemPrice = info[5];
+					String itemRepayPencent = info[7];
+					String itemRepay = info[8];
+					if(!"T商品id".equals(itemID)) {
+						String itemTaoKey = info[19];
+						itemTaoKey = "￥"+itemTaoKey.split("￥")[1]+"￥";
+						itemName = Rebuild.itemName(itemName);
+						file.write(databaseUrl, itemID+","+itemName+","+itemPrice+","+itemRepayPencent+","+itemRepay+","+itemTaoKey+","+"o", true);
+					}
 				}
 			}
 		}
@@ -85,30 +119,36 @@ public class DataBase {
 	
 	/**
 	 * 建立以xls文件为数据源的数据库
-	 * 适用于淘宝联盟
+	 * 主要适用于淘宝联盟
 	 * 
 	 * @param url xls文件地址
 	 */
-	public static void buildXLSData(String url) {
+	public static void buildXLSData(String url, String platform) {
 		
 	}
 	
 	public static int getAllItemsNums() {
 		if(!file.isExists(dataUrl)) {
 			file.mkdir(dataUrl);
-			file.createNewFile(debugUrl);
-		} else if(file.isExists(dataUrl)&&!file.isExists(debugUrl)) {
-			file.createNewFile(debugUrl);
+			file.createNewFile(databaseUrl);
+		} else if(file.isExists(dataUrl)&&!file.isExists(databaseUrl)) {
+			file.createNewFile(databaseUrl);
 		}
-		return (int)file.getLine(debugUrl);
+		return (int)file.getLine(databaseUrl);
 	}
 	
 	public static String[] getEnableItemsID() {
-		if(file.isExists(debugUrl)) {
+		if(file.isExists(databaseUrl)) {
 			List<String> id = new ArrayList<String>();
-			for(String line : file.getAllLineString(debugUrl)) {
-				if(!"x".equals(line.split(",")[7])) {
-					id.add(line.split(",")[0]);
+			for(String line : file.getAllLineString(databaseUrl)) {
+				if(line.charAt(0)=='J') {
+					if(!"x".equals(line.split(",")[7])) {
+						id.add(line.split(",")[0]);
+					}
+				} else if(line.charAt(0)=='T') {
+					if(!"x".equals(line.split(",")[6])) {
+						id.add(line.split(",")[0]);
+					}
 				}
 			}
 			String[] result = new String[id.size()];
@@ -131,17 +171,24 @@ public class DataBase {
 	}
 	
 	public static String[] getEnableItem() {
-		for(String line : file.getAllLineString(debugUrl)) {
-			if(!"x".equals(line.split(",")[7])) {
-				String[] result = line.split(",");
-				return result;
+		for(String line : file.getAllLineString(databaseUrl)) {
+			if(line.charAt(0)=='J') {
+				if(!"x".equals(line.split(",")[7])) {
+					String[] result = line.split(",");
+					return result;
+				}
+			} else if(line.charAt(0)=='T') {
+				if(!"x".equals(line.split(",")[6])) {
+					String[] result = line.split(",");
+					return result;
+				}
 			}
 		}
 		return null;
 	}
 	
 	public static String[] getItemData(String id) {
-		for(String line : file.getAllLineString(debugUrl)) {
+		for(String line : file.getAllLineString(databaseUrl)) {
 			if(line.split(",")[0].equals(id)) {
 				String[] result = line.split(",");
 				return result;
@@ -160,11 +207,11 @@ public class DataBase {
 	}
 	
 	public static void setItemState(String id, boolean state) {
-		int line = text.findLine(debugUrl, id)[0];
+		int line = text.findLine(databaseUrl, id)[0];
 		if(state) {
-			file.replace(debugUrl, line, ",x", ",o");
+			file.replace(databaseUrl, line, ",x", ",o");
 		} else {
-			file.replace(debugUrl, line, ",o", ",x");
+			file.replace(databaseUrl, line, ",o", ",x");
 		}
 		
 	}

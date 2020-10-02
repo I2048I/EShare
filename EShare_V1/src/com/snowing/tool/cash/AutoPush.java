@@ -4,7 +4,7 @@ import javax.swing.JOptionPane;
 
 public class AutoPush {
 	public static boolean pc() {
-		if(null!=EShare.autoPushCommand&&!"".equals(EShare.autoPushCommand)&&!"null".equals(EShare.autoPushCommand)) {
+		if(null!=EShare.autoPushCommand&&!"".equals(EShare.autoPushCommand)&&!"null ".equals(EShare.autoPushCommand)) {
 			Ui.autoPushPC();
 			return true;
 		} else {
@@ -14,7 +14,7 @@ public class AutoPush {
 		}
 	}
 	
-	public boolean phone() {
+	public static boolean phone() {
 		return false;
 	}
 }

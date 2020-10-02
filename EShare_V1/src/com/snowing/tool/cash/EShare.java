@@ -13,7 +13,7 @@ public class EShare {
 	final public static String Version = "V1.0.0_201001";
 	final public static int CoreVersion = 100;
 	//*************ITEMS DATA*************//
-	static String CSVUrl = "";//目标CSV文件目录
+	static String dataUrl = "";//目标源数据文件目录
 	static int allItems = 0;//商品总数
 	static int copyableItems = 0;//符合条件商品数
 	static String itemName = "";//商品名称
@@ -24,6 +24,7 @@ public class EShare {
 	static String itemURL = "";//推送链接
 	static String itemDiscountURL = "";//优惠劵链接
 	static String itemRealPrice = "";//商品原价
+	static String itemTaoKey = "";//商品淘口令
 	
 	//*************SETTING*************//
 	static boolean enableSmartReformat = false;//自动格式化

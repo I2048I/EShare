@@ -51,6 +51,17 @@ public class Resources {
 			} else if(Component.equals("SwitchOFF")) {
 				ImageIcon icon = new ImageIcon(SwitchOFF+"_"+subject+".png");
 				return icon;
+			} else if(Component.equals("Icon")) {
+				ImageIcon icon = null;
+				switch(subject) {
+				case 32:
+					icon = new ImageIcon(Icon+"_32x32.png");
+				case 64:
+					icon = new ImageIcon(Icon+"_64x64.png");
+				case 128:
+					icon = new ImageIcon(Icon+"_128x128.png");
+				}
+				return icon;
 			}else {
 				return null;
 			}

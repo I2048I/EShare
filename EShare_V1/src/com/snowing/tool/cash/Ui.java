@@ -28,7 +28,6 @@ import java.net.URISyntaxException;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
@@ -65,6 +64,7 @@ public class Ui extends EShare{
 	protected static JLabel lblNewLabel_6 = new JLabel("\u8F7D\u5165\u6570\u636E\u4E2D...");
 	private static JLabel label_enableItems = new JLabel("\u53EF\u7528\u5546\u54C1:0");
 	private static JLabel label_itemName = new JLabel("\u540D\u79F0:");
+	private static JLabel label_platform = new JLabel("\u5E73\u53F0:");
 	private static JLabel label_itemID = new JLabel("ID:");
 	private static JLabel label_cashInfo = new JLabel("折后价:￥0    \u8FD4\u4F63\u70B9\u6570:0%    \u8FD4\u4F63\u91D1:￥0");
 	
@@ -159,6 +159,9 @@ public class Ui extends EShare{
 		home();
 	}
 
+	/**
+	 * @wbp.parser.entryPoint
+	 */
 	public static void home() {
 		panel.removeAll();
 		panel.setLayout(new BorderLayout(5,5));
@@ -172,9 +175,9 @@ public class Ui extends EShare{
 		flowLayout.setAlignment(FlowLayout.LEFT);
 		homePanel.add(panel, BorderLayout.NORTH);
 
-		JLabel label_CSVFile = new JLabel("CSV\u6587\u4EF6");
-		label_CSVFile.setFont(new Font("黑体", Font.PLAIN, 15));
-		panel.add(label_CSVFile);
+		JLabel label_dataFile = new JLabel("\u6E90\u6570\u636E\u6587\u4EF6");
+		label_dataFile.setFont(new Font("黑体", Font.PLAIN, 15));
+		panel.add(label_dataFile);
 
 		textField_CVSFile = new JTextField();
 		textField_CVSFile.setEditable(false);
@@ -182,14 +185,14 @@ public class Ui extends EShare{
 		panel.add(textField_CVSFile);
 		textField_CVSFile.setColumns(18);
 
-		JButton btncsv_1 = new JButton("\u9009\u62E9CSV...");
+		JButton btncsv_1 = new JButton("\u9009\u62E9...");
 		btncsv_1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				JFrame fileChooseFrame = new JFrame();
 				int result = 0;
 				String local = null;
 				JFileChooser fileChooser = new JFileChooser(".");
-				FileNameExtensionFilter filter= new FileNameExtensionFilter("CSV文件(*.csv)", "csv");
+				FileNameExtensionFilter filter= new FileNameExtensionFilter("源数据文件(*.csv/*.xls/*.xlsx)", "csv", "xls", "xlsx");
 				fileChooser.setFileFilter(filter);
 				fileChooser.setDialogTitle("请选择...");
 				fileChooser.setApproveButtonText("确定");
@@ -197,10 +200,10 @@ public class Ui extends EShare{
 				result = fileChooser.showOpenDialog(fileChooseFrame);
 				if (JFileChooser.APPROVE_OPTION == result) {
 					local=fileChooser.getSelectedFile().getPath();
-					CSVUrl=local;
+					dataUrl = local;
 				}
 				if(null!=local&&!"".equals(local)) {
-					textField_CVSFile.setText(CSVUrl);
+					textField_CVSFile.setText(dataUrl);
 				}
 			}
 
@@ -208,17 +211,35 @@ public class Ui extends EShare{
 		btncsv_1.setFont(new Font("黑体", Font.PLAIN, 15));
 		panel.add(btncsv_1);
 
-		JButton btncsv = new JButton("\u83B7\u53D6\u6700\u65B0CSV");
+		JButton btncsv = new JButton("\u83B7\u53D6\u6700\u65B0\u6587\u4EF6");
 		btncsv.setFont(new Font("黑体", Font.PLAIN, 15));
 		btncsv.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
+				Object[] options = {"京东联盟","淘宝联盟","取消"};
+				int Choose = JOptionPane.showOptionDialog(EShare.frame,"请选择要推广的平台(目前仅支持京东)","选择推广平台", JOptionPane.INFORMATION_MESSAGE,
+						JOptionPane.INFORMATION_MESSAGE, null,options,options[1]);
 				Desktop dp = Desktop.getDesktop();
-				try {
-					URI url = new URI("https://union.jd.com/proManager/index?pageNo=1");
-					dp.browse(url);
-				} catch (IOException | URISyntaxException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+				switch(Choose) {
+				case 0:
+					try {
+						URI url = new URI("https://union.jd.com/proManager/index?pageNo=1");
+						dp.browse(url);
+					} catch (IOException | URISyntaxException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					break;
+				case 1:
+					try {
+						URI url = new URI("https://pub.alimama.com/promo/search/index.htm");
+						dp.browse(url);
+					} catch (IOException | URISyntaxException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					break;
+				case 2:
+					break;
 				}
 			}
 		});
@@ -227,20 +248,51 @@ public class Ui extends EShare{
 		JButton btnNewButton_5 = new JButton("\u5EFA\u7ACB\u6570\u636E\u5E93");
 		btnNewButton_5.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if(!file.isEmpty(CSVUrl)) {
-					DataBase.buildCSVData(CSVUrl);
-					if(DataBase.getEnableItemsNum()>0) {
-						copyableItems = DataBase.getEnableItemsNum();
-						String[] itemInfo = DataBase.getEnableItem();
-						updateItem(itemInfo);
-					} else {
-						copyableItems = 0;
-						String[] emptyItemInfo = new String[7];
-						updateItem(emptyItemInfo);
+				if(!file.isEmpty(dataUrl)) {
+					Object[] options = {"京东联盟","淘宝联盟","取消"};
+					int Choose = JOptionPane.showOptionDialog(EShare.frame,"源数据来源平台","选择平台", JOptionPane.INFORMATION_MESSAGE,
+							JOptionPane.INFORMATION_MESSAGE, null,options,options[1]);
+					switch(Choose) {
+					case 0:
+						if(file.getFileKinds(dataUrl).equals("csv")) {
+							DataBase.buildCSVData(dataUrl, "JD");
+						} else if(file.getFileKinds(dataUrl).equals("xls")||file.getFileKinds(dataUrl).equals("xlsx")) {
+							DataBase.buildXLSData(dataUrl, "JD");
+						}
+						if(DataBase.getEnableItemsNum()>0) {
+							copyableItems = DataBase.getEnableItemsNum();
+							String[] itemInfo = DataBase.getEnableItem();
+							updateItem(itemInfo);
+						} else {
+							copyableItems = 0;
+							String[] emptyItemInfo = new String[7];
+							updateItem(emptyItemInfo);
+						}
+						labelReflash();
+						break;
+					case 1:
+						if(file.getFileKinds(dataUrl).equals("csv")) {
+							DataBase.buildCSVData(dataUrl, "TB");
+						} else if(file.getFileKinds(dataUrl).equals("xls")||file.getFileKinds(dataUrl).equals("xlsx")) {
+							DataBase.buildXLSData(dataUrl, "TB");
+						}
+						if(DataBase.getEnableItemsNum()>0) {
+							copyableItems = DataBase.getEnableItemsNum();
+							String[] itemInfo = DataBase.getEnableItem();
+							updateItem(itemInfo);
+						} else {
+							copyableItems = 0;
+							String[] emptyItemInfo = new String[7];
+							updateItem(emptyItemInfo);
+						}
+						labelReflash();
+						break;
+					case 2:
+						break;
 					}
-					labelReflash();
+					
 				} else {
-					JOptionPane.showMessageDialog(frame, "目标CSV文件不存在", "错误", JOptionPane.ERROR_MESSAGE);
+					JOptionPane.showMessageDialog(frame, "目标源数据文件不存在", "错误", JOptionPane.ERROR_MESSAGE);
 				}
 			}
 		});
@@ -256,7 +308,7 @@ public class Ui extends EShare{
 		panel_1.add(panel_4, BorderLayout.WEST);
 		panel_4.setLayout(new BorderLayout(0, 0));
 
-		JLabel lblNewLabel_1 = new JLabel("\u7248\u672C:V1.0.0_201001");
+		JLabel lblNewLabel_1 = new JLabel("\u7248\u672C:"+Version);
 		lblNewLabel_1.setFont(new Font("黑体", Font.PLAIN, 15));
 		panel_4.add(lblNewLabel_1);
 
@@ -282,6 +334,12 @@ public class Ui extends EShare{
 		button_setting.setToolTipText("\u8BBE\u7F6E");
 		button_setting.setFont(new Font("黑体", Font.PLAIN, 15));
 		panel_5.add(button_setting);
+		
+		JLabel lblgplv = new JLabel("\u672C\u8F6F\u4EF6\u57FA\u4E8EGPL_V3\u5F00\u6E90\uFF0C\u7981\u6B62\u5012\u5356!!!");
+		lblgplv.setForeground(Color.RED);
+		lblgplv.setFont(new Font("黑体", Font.PLAIN, 12));
+		lblgplv.setHorizontalAlignment(SwingConstants.CENTER);
+		panel_1.add(lblgplv, BorderLayout.CENTER);
 
 		JPanel panel_2 = new JPanel();
 		panel_2.setBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null));
@@ -330,7 +388,15 @@ public class Ui extends EShare{
 		JButton button_autoPush = new JButton(">");
 		button_autoPush.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				AutoPush.pc();
+				Object[] options = {"PC","安卓"};
+				int Choose = JOptionPane.showOptionDialog(frame,"选择推送方式","提示", JOptionPane.INFORMATION_MESSAGE,
+						JOptionPane.INFORMATION_MESSAGE, null,options,options[1]);
+				if(Choose==0) {
+					AutoPush.pc();
+				} else {
+					AutoPush.phone();
+				}
+				
 			}
 		});
 		button_autoPush.setToolTipText("\u81EA\u52A8\u63A8\u9001");
@@ -356,6 +422,9 @@ public class Ui extends EShare{
 		panel_8.setBorder(new TitledBorder(new LineBorder(new Color(55, 55, 55), 1), "当前商品详情", TitledBorder.LEADING, TitledBorder.TOP, new Font("黑体", Font.PLAIN, 15), new Color(0, 0, 0)));
 		panel_7.add(panel_8, BorderLayout.NORTH);
 		panel_8.setLayout(new GridLayout(0, 1, 2, 0));
+		
+		label_platform.setFont(new Font("黑体", Font.PLAIN, 15));
+		panel_8.add(label_platform);
 
 		label_itemName.setFont(new Font("黑体", Font.PLAIN, 15));
 		panel_8.add(label_itemName);
@@ -420,9 +489,6 @@ public class Ui extends EShare{
 		panel.updateUI();
 	}
 
-	/**
-	 * @wbp.parser.entryPoint
-	 */
 	public static void setting() {
 		loadFrame.getContentPane().setLayout(new MigLayout("", "[]", "[]"));
 		panel.removeAll();
@@ -684,7 +750,7 @@ public class Ui extends EShare{
 		helpPanel.add(panel_1, BorderLayout.NORTH);
 		
 		JLabel lblNewLabel = new JLabel("");
-		lblNewLabel.setIcon(new ImageIcon("D:\\\u96EA\u7075\u5DE5\u4F5C\u5BA4 SnowingStudio\\JDshare\\JDShare_V1\\img\\Icon_128x128.png"));
+		lblNewLabel.setIcon(res.getIcon("Icon", 64));
 		panel_1.add(lblNewLabel);
 		
 		JPanel panel_3 = new JPanel();
@@ -1084,20 +1150,22 @@ public class Ui extends EShare{
 	}
 	public static void labelReflash() {
 		if(null!=itemID&&!"".equals(itemID)) {
+			label_platform.setText("平台:"+(EShare.itemID.charAt(0)=='J' ? "京东" : (EShare.itemID.charAt(0)=='T') ? "淘宝" : "未知"));
 			label_enableItems.setText("可用商品:"+copyableItems);
 			label_itemName.setText("名称:"+itemName);
 			label_itemID.setText("ID:"+itemID);
 			label_cashInfo.setText("折后价:￥"+itemPrice+"    返佣点数:"+itemRepayPencent+"%    返佣金:￥"+itemRepay);
 		} else {
 			if(null!=itemID&&!"".equals(itemID)) {
+				label_platform.setText("平台:未知");
 				label_enableItems.setText("可用商品:0");
 				label_itemName.setText("名称:无可用商品，请获取新的CSV文件");
 				label_itemID.setText("ID:0");
 				label_cashInfo.setText("折后价:￥0    返佣点数:0%    返佣金:￥0");
 			}
 		}
-		if(null!=CSVUrl&&!"".equals(CSVUrl)) {
-			textField_CVSFile.setText(CSVUrl);
+		if(null!=dataUrl&&!"".equals(dataUrl)) {
+			textField_CVSFile.setText(dataUrl);
 		}
 	}
 	
