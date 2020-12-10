@@ -10,7 +10,7 @@ import javax.swing.UIManager;
 import cn.snowing.system.HostOS;
 
 public class EShare {
-	final public static String Version = "V1.0.0_201001";
+	final public static String Version = "V1.0.0_201002";
 	final public static int CoreVersion = 100;
 	//*************ITEMS DATA*************//
 	static String dataUrl = "";//目标源数据文件目录
@@ -22,6 +22,7 @@ public class EShare {
 	static String itemRepayPencent = "";//返点
 	static String itemRepay = "";//佣金
 	static String itemURL = "";//推送链接
+	static String itemDiscountPrice = "";//优惠卷面额
 	static String itemDiscountURL = "";//优惠劵链接
 	static String itemRealPrice = "";//商品原价
 	static String itemTaoKey = "";//商品淘口令
@@ -54,13 +55,54 @@ public class EShare {
 	
 	public static void updateItem(String[] itemData) {
 		if(null!=itemData) {
-			itemName = itemData[1];
-			itemID = itemData[0];
-			itemPrice = itemData[2];
-			itemRepayPencent = itemData[3];
-			itemRepay = itemData[4];
-			itemURL = itemData[5];
-			itemDiscountURL = itemData[6];
+			if(itemData[0].charAt(0)=='J') {
+				itemName = itemData[1];
+				itemID = itemData[0];
+				itemPrice = itemData[2];
+				itemRepayPencent = itemData[3];
+				itemRepay = itemData[4];
+				itemURL = itemData[5];
+				itemDiscountURL = itemData[6];
+			} else if(itemData[0].charAt(0)=='T') {
+				itemName = itemData[1];
+				itemID = itemData[0];
+				itemRealPrice = itemData[2];
+				itemRepayPencent = itemData[3];
+				itemRepay = itemData[4];
+				itemDiscountPrice = itemData[5];
+				itemTaoKey = itemData[6];
+				itemPrice = "";
+				int leftNum1 = 0;
+				int rightNum1 = 0;
+				int leftNum2 = 0;
+				int rightNum2 = 0;
+				if(itemRealPrice.indexOf(".")!=-1) {
+					leftNum1 = Integer.parseInt(itemRealPrice.split("\\.")[0]);
+					rightNum1 = Integer.parseInt(itemRealPrice.split("\\.")[1]);
+				} else {
+					leftNum1 = Integer.parseInt(itemRealPrice);
+				}
+				if(itemDiscountPrice.indexOf(".")!=-1) {
+					leftNum2 = Integer.parseInt(itemDiscountPrice.split("\\.")[0]);
+					rightNum2 = Integer.parseInt(itemDiscountPrice.split("\\.")[1]);
+				} else {
+					leftNum2 = Integer.parseInt(itemDiscountPrice);
+				}
+				String a = ""+rightNum1;
+				String b = ""+rightNum2;
+				if(a.length()<b.length()) {
+					rightNum1 = rightNum1*(b.length()-a.length())*10;
+				} else if(a.length()>b.length()) {
+					rightNum2 = rightNum2*(a.length()-b.length())*10;
+				}
+				int c = rightNum1-rightNum2;
+				String d = ""+c;
+				if(c<0) {
+					leftNum1 = leftNum1 - 1;
+					c = (10*(d.length()-1)) -c;
+				}
+				itemPrice = leftNum1-leftNum2+"."+c;
+			}
 		}
 	}
 	

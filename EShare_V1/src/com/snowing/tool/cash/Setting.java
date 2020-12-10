@@ -11,7 +11,7 @@ import cn.snowing.io.Filer;
 import cn.snowing.system.HostOS;
 
 public class Setting {
-	final public static String Version = "V1.0.0_201001";
+	final public static String Version = "V1.0.0_201002";
 	static Filer file = new Filer();
 	
 	public static boolean loadSetting() {

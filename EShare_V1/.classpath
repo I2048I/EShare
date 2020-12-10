@@ -9,5 +9,10 @@
 			<attribute name="source_encoding" value="UTF-8"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="lib" path="src/com/snowing/tool/cash/jxl.jar" sourcepath="D:/雪灵工作室 SnowingStudio/jexcelapi/Sources.zip">
+		<attributes>
+			<attribute name="javadoc_location" value="file:/D:/雪灵工作室%20SnowingStudio/jexcelapi/docs/"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

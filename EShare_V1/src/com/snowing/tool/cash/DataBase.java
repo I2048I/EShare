@@ -8,15 +8,15 @@ import cn.snowing.io.Text;
 import cn.snowing.system.HostOS;
 
 public class DataBase {
-	
-	final public static String Version = "V1.0.0_201002";
-	
+
+	final public static String Version = "V1.0.0_201210";
+
 	public static String dataUrl = new HostOS().getUserHome()+"//db//";
 	public static String databaseUrl = new HostOS().getUserHome()+"//db//eshare.db";
-	
+
 	static Filer file = new Filer();
 	static Text text = new Text();
-	
+
 	public static void buildCSVData(String url, String platform) {
 		if(!file.isExists(dataUrl)) {
 			file.mkdir(dataUrl);
@@ -38,7 +38,11 @@ public class DataBase {
 						String itemDiscountURL = info[7];
 						itemName = Rebuild.itemName(itemName);
 						String itemID = "J"+itemSourcesUrl.replace("	", "").replace("http://item.jd.com/", "").replace(".html", "");
-						file.write(databaseUrl, itemID+","+itemName+","+itemPrice+","+itemRepayPencent+","+itemRepay+","+itemURL+","+itemDiscountURL+","+"o", true);
+						if(!Rebuild.wordsBan(itemName)) {
+							file.write(databaseUrl, itemID+","+itemName+","+itemPrice+","+itemRepayPencent+","+itemRepay+","+itemURL+","+itemDiscountURL+","+"o", true);
+						} else {
+							System.out.println("ID:"+itemID+" has some word be banned.");
+						}
 					}
 				} else if(platform.equals("TB")){
 					String itemID = "T"+info[0];
@@ -46,15 +50,19 @@ public class DataBase {
 					String itemPrice = info[5];
 					String itemRepayPencent = info[7];
 					String itemRepay = info[8];
+					String itemDiscountPrice = info[15];
 					if(!"T商品id".equals(itemID)) {
 						String itemTaoKey = info[19];
-						System.out.println(itemTaoKey);
 						itemTaoKey = "￥"+itemTaoKey.split("￥")[1]+"￥";
 						itemName = Rebuild.itemName(itemName);
-						file.write(databaseUrl, itemID+","+itemName+","+itemPrice+","+itemRepayPencent+","+itemRepay+","+itemTaoKey+","+"o", true);
+						if(!Rebuild.wordsBan(itemName)) {
+							file.write(databaseUrl, itemID+","+itemName+","+itemPrice+","+itemRepayPencent+","+itemRepay+","+itemDiscountPrice+","+itemTaoKey+","+"o", true);
+						} else {
+							System.out.println("ID:"+itemID+" has some word be banned.");
+						}
 					}
 				}
-				
+
 			}
 		} else {
 			String[] id = new String[(int)file.getLine(databaseUrl)];
@@ -98,7 +106,11 @@ public class DataBase {
 						String itemDiscountURL = info[7];
 						itemName = Rebuild.itemName(itemName);
 						String itemID = "J"+itemSourcesUrl.replace("	", "").replace("http://item.jd.com/", "").replace(".html", "");
-						file.write(databaseUrl, itemID+","+itemName+","+itemPrice+","+itemRepayPencent+","+itemRepay+","+itemURL+","+itemDiscountURL+","+"o", true);
+						if(!Rebuild.wordsBan(itemName)) {
+							file.write(databaseUrl, itemID+","+itemName+","+itemPrice+","+itemRepayPencent+","+itemRepay+","+itemURL+","+itemDiscountURL+","+"o", true);
+						} else {
+							System.out.println("ID:"+itemID+" has some word be banned.");
+						}
 					}
 				} else if(platform.equals("TB")){
 					String itemID = "T"+info[0];
@@ -106,17 +118,27 @@ public class DataBase {
 					String itemPrice = info[5];
 					String itemRepayPencent = info[7];
 					String itemRepay = info[8];
+					String itemDiscountPrice = info[15];
 					if(!"T商品id".equals(itemID)) {
 						String itemTaoKey = info[19];
-						itemTaoKey = "￥"+itemTaoKey.split("￥")[1]+"￥";
+						try {
+							itemTaoKey = "￥"+itemTaoKey.split("￥")[1]+"￥";
+						}catch(Exception e){
+							i++;
+							continue;
+						}
 						itemName = Rebuild.itemName(itemName);
-						file.write(databaseUrl, itemID+","+itemName+","+itemPrice+","+itemRepayPencent+","+itemRepay+","+itemTaoKey+","+"o", true);
+						if(!Rebuild.wordsBan(itemName)) {
+							file.write(databaseUrl, itemID+","+itemName+","+itemPrice+","+itemRepayPencent+","+itemRepay+","+itemDiscountPrice+","+itemTaoKey+","+"o", true);
+						} else {
+							System.out.println("ID:"+itemID+" has some word be banned.");
+						}
 					}
 				}
 			}
 		}
 	}
-	
+
 	/**
 	 * 建立以xls文件为数据源的数据库
 	 * 主要适用于淘宝联盟
@@ -124,9 +146,9 @@ public class DataBase {
 	 * @param url xls文件地址
 	 */
 	public static void buildXLSData(String url, String platform) {
-		
+
 	}
-	
+
 	public static int getAllItemsNums() {
 		if(!file.isExists(dataUrl)) {
 			file.mkdir(dataUrl);
@@ -136,19 +158,13 @@ public class DataBase {
 		}
 		return (int)file.getLine(databaseUrl);
 	}
-	
+
 	public static String[] getEnableItemsID() {
 		if(file.isExists(databaseUrl)) {
 			List<String> id = new ArrayList<String>();
 			for(String line : file.getAllLineString(databaseUrl)) {
-				if(line.charAt(0)=='J') {
-					if(!"x".equals(line.split(",")[7])) {
-						id.add(line.split(",")[0]);
-					}
-				} else if(line.charAt(0)=='T') {
-					if(!"x".equals(line.split(",")[6])) {
-						id.add(line.split(",")[0]);
-					}
+				if(!"x".equals(line.split(",")[7])) {
+					id.add(line.split(",")[0]);
 				}
 			}
 			String[] result = new String[id.size()];
@@ -160,7 +176,7 @@ public class DataBase {
 			return null;
 		}
 	}
-	
+
 	public static int getEnableItemsNum() {
 		String[] data = getEnableItemsID();
 		int result = 0;
@@ -169,24 +185,17 @@ public class DataBase {
 		}
 		return result;
 	}
-	
+
 	public static String[] getEnableItem() {
 		for(String line : file.getAllLineString(databaseUrl)) {
-			if(line.charAt(0)=='J') {
-				if(!"x".equals(line.split(",")[7])) {
-					String[] result = line.split(",");
-					return result;
-				}
-			} else if(line.charAt(0)=='T') {
-				if(!"x".equals(line.split(",")[6])) {
-					String[] result = line.split(",");
-					return result;
-				}
+			if(!"x".equals(line.split(",")[7])) {
+				String[] result = line.split(",");
+				return result;
 			}
 		}
 		return null;
 	}
-	
+
 	public static String[] getItemData(String id) {
 		for(String line : file.getAllLineString(databaseUrl)) {
 			if(line.split(",")[0].equals(id)) {
@@ -196,16 +205,16 @@ public class DataBase {
 		}
 		return null;
 	}
-	
+
 	public String toShare(String id) {
-		
+
 		return null;
 	}
-	
+
 	public String[] getCSV(String url) {
 		return null;
 	}
-	
+
 	public static void setItemState(String id, boolean state) {
 		int line = text.findLine(databaseUrl, id)[0];
 		if(state) {
@@ -213,6 +222,6 @@ public class DataBase {
 		} else {
 			file.replace(databaseUrl, line, ",o", ",x");
 		}
-		
+
 	}
 }

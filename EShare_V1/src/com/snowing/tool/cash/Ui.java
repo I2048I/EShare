@@ -50,7 +50,7 @@ import net.miginfocom.swing.MigLayout;
 public class Ui extends EShare{
 
 	final public static String Version = "V1.0.0_201002";
-	
+
 	static Filer file = new Filer();
 	static Toolkits tk = new Toolkits();
 	static private Dimension ScreenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -59,7 +59,7 @@ public class Ui extends EShare{
 	private static JTextField textField_CVSFile;
 	private static JButton button_smartReformat = new JButton("ON");
 	private static JButton button_autoRemoveSame = new JButton("ON");
-	
+
 	protected static JFrame loadFrame = new JFrame();
 	protected static JLabel lblNewLabel_6 = new JLabel("\u8F7D\u5165\u6570\u636E\u4E2D...");
 	private static JLabel label_enableItems = new JLabel("\u53EF\u7528\u5546\u54C1:0");
@@ -67,7 +67,7 @@ public class Ui extends EShare{
 	private static JLabel label_platform = new JLabel("\u5E73\u53F0:");
 	private static JLabel label_itemID = new JLabel("ID:");
 	private static JLabel label_cashInfo = new JLabel("折后价:￥0    \u8FD4\u4F63\u70B9\u6570:0%    \u8FD4\u4F63\u91D1:￥0");
-	
+
 	static boolean loaded = false;
 	static boolean SKUloaded = false;//是否加载完成SKU读取操作
 	static boolean pushed = false;//是否Push
@@ -159,9 +159,6 @@ public class Ui extends EShare{
 		home();
 	}
 
-	/**
-	 * @wbp.parser.entryPoint
-	 */
 	public static void home() {
 		panel.removeAll();
 		panel.setLayout(new BorderLayout(5,5));
@@ -290,7 +287,7 @@ public class Ui extends EShare{
 					case 2:
 						break;
 					}
-					
+
 				} else {
 					JOptionPane.showMessageDialog(frame, "目标源数据文件不存在", "错误", JOptionPane.ERROR_MESSAGE);
 				}
@@ -334,7 +331,7 @@ public class Ui extends EShare{
 		button_setting.setToolTipText("\u8BBE\u7F6E");
 		button_setting.setFont(new Font("黑体", Font.PLAIN, 15));
 		panel_5.add(button_setting);
-		
+
 		JLabel lblgplv = new JLabel("\u672C\u8F6F\u4EF6\u57FA\u4E8EGPL_V3\u5F00\u6E90\uFF0C\u7981\u6B62\u5012\u5356!!!");
 		lblgplv.setForeground(Color.RED);
 		lblgplv.setFont(new Font("黑体", Font.PLAIN, 12));
@@ -396,7 +393,7 @@ public class Ui extends EShare{
 				} else {
 					AutoPush.phone();
 				}
-				
+
 			}
 		});
 		button_autoPush.setToolTipText("\u81EA\u52A8\u63A8\u9001");
@@ -422,7 +419,7 @@ public class Ui extends EShare{
 		panel_8.setBorder(new TitledBorder(new LineBorder(new Color(55, 55, 55), 1), "当前商品详情", TitledBorder.LEADING, TitledBorder.TOP, new Font("黑体", Font.PLAIN, 15), new Color(0, 0, 0)));
 		panel_7.add(panel_8, BorderLayout.NORTH);
 		panel_8.setLayout(new GridLayout(0, 1, 2, 0));
-		
+
 		label_platform.setFont(new Font("黑体", Font.PLAIN, 15));
 		panel_8.add(label_platform);
 
@@ -538,51 +535,52 @@ public class Ui extends EShare{
 
 		new Timer().schedule(new TimerTask() {
 			public void run() {
-				if(null!=SKU.getPrice(itemURL)) {
-					label_loadingText.setText("正在获取原价...");
-					itemRealPrice = SKU.getPrice(itemURL);
-					if(!"".equals(itemRealPrice)&&null!=itemRealPrice) {
-						//SKUloaded = true;
-						label_loadingText.setText("正在将数据复制到剪切板...");
-						Clipboard clip = Toolkit.getDefaultToolkit().getSystemClipboard();  
-						Transferable tText = new StringSelection(itemName+"\r\n"+"原价￥"+itemRealPrice+"，"+"卷后￥"+itemPrice+"\r\n"+"链接:"+itemURL+"\r\n"+"优惠劵:"+itemDiscountURL);  
-						clip.setContents(tText, null);
-						label_loadingText.setText("载入新商品数据中...");
-						DataBase.setItemState(itemID, false);
-						if(DataBase.getEnableItemsNum()>0) {
-							copyableItems = DataBase.getEnableItemsNum();
-							String[] itemInfo = DataBase.getEnableItem();
-							updateItem(itemInfo);
+				if(itemID.charAt(0)=='J') {
+
+					if(null!=SKU.getPrice(itemURL)) {
+						label_loadingText.setText("正在获取原价...");
+						itemRealPrice = SKU.getPrice(itemURL);
+						if(!"".equals(itemRealPrice)&&null!=itemRealPrice) {
+							//SKUloaded = true;
+							label_loadingText.setText("正在将数据复制到剪切板...");
+							tk.clipboard(itemName+"\r\n"+"原价￥"+itemRealPrice+"，"+"卷后￥"+itemPrice+"\r\n"+"链接:"+itemURL+"\r\n"+"优惠劵:"+itemDiscountURL);
+							label_loadingText.setText("载入新商品数据中...");
+							Push.updateInfo();
+							labelReflash();
+							label_loadingText.setText("数据已成功获取...");
+							JOptionPane.showMessageDialog(frame,"获取完成!!");
+							SKUloaded = false;
+							dialog.setVisible(false);
 						} else {
-							copyableItems = 0;
-							String[] emptyItemInfo = {"","","","","","",""};
-							updateItem(emptyItemInfo);
+							label_loadingText.setText("获取商品原价失败...");
+							SKUloaded = true;
+							card.show(dialog.getContentPane(), "b2");
 						}
-						labelReflash();
-						label_loadingText.setText("数据已成功获取...");
-						JOptionPane.showMessageDialog(frame,"获取完成!!");
-						SKUloaded = false;
-						dialog.setVisible(false);
 					} else {
-						label_loadingText.setText("获取商品原价失败...");
+						label_loadingText.setText("获取商品信息失败...");
+						JOptionPane.showMessageDialog(frame,"获取失败，请在接下来显示的网页中查看原价格，并输入到输入框中。");
 						SKUloaded = true;
 						card.show(dialog.getContentPane(), "b2");
+						Desktop dp = Desktop.getDesktop();
+						try {
+							URI url = new URI(itemURL);
+							dp.browse(url);
+						} catch (IOException | URISyntaxException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
 					}
 				} else {
-					label_loadingText.setText("获取商品信息失败...");
-					JOptionPane.showMessageDialog(frame,"获取失败，请在接下来显示的网页中查看原价格，并输入到输入框中。");
-					SKUloaded = true;
-					card.show(dialog.getContentPane(), "b2");
-					Desktop dp = Desktop.getDesktop();
-					try {
-						URI url = new URI(itemURL);
-						dp.browse(url);
-					} catch (IOException | URISyntaxException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+					label_loadingText.setText("正在将数据复制到剪切板...");
+					tk.clipboard(itemName+"\r\n"+"原价￥"+itemRealPrice+"，"+"卷后￥"+itemPrice+"\r\n"+"淘口令:"+itemTaoKey);
+					label_loadingText.setText("载入新商品数据中...");
+					Push.updateInfo();
+					labelReflash();
+					label_loadingText.setText("数据已成功获取...");
+					JOptionPane.showMessageDialog(frame,"获取完成!!");
+					SKUloaded = false;
+					dialog.setVisible(false);
 				}
-				
 			}
 		}, 10);
 		JPanel centerPanel = new JPanel();
@@ -690,7 +688,7 @@ public class Ui extends EShare{
 		dialog.setVisible(true);
 		System.out.println("TEST");
 	}
-	
+
 	public static void help() {
 		JDialog dialog = new JDialog(frame, "帮助", true);
 		dialog.setIconImage(res.getImage("Icon", 32));
@@ -698,17 +696,17 @@ public class Ui extends EShare{
 		JPanel helpPanel = new JPanel();
 		dialog.getContentPane().add(helpPanel);
 		helpPanel.setLayout(new BorderLayout(5, 2));
-		
+
 		JPanel panel = new JPanel();
 		panel.setBorder(new TitledBorder(new LineBorder(new Color(55, 55, 55)), "捐赠", TitledBorder.LEADING, TitledBorder.TOP, new Font("黑体", Font.PLAIN, 15), new Color(0, 0, 0)));
 		FlowLayout flowLayout_1 = (FlowLayout) panel.getLayout();
 		flowLayout_1.setAlignment(FlowLayout.LEFT);
 		helpPanel.add(panel, BorderLayout.SOUTH);
-		
+
 		JLabel lblNewLabel_8 = new JLabel("\u5F00\u53D1\u4E0D\u6613\uFF0C\u611F\u8C22\u6350\u8D60!");
 		lblNewLabel_8.setFont(new Font("黑体", Font.PLAIN, 15));
 		panel.add(lblNewLabel_8);
-		
+
 		JButton tglbtnNewToggleButton = new JButton("\u5FAE\u4FE1");
 		tglbtnNewToggleButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -725,7 +723,7 @@ public class Ui extends EShare{
 		});
 		tglbtnNewToggleButton.setFont(new Font("黑体", Font.PLAIN, 15));
 		panel.add(tglbtnNewToggleButton);
-		
+
 		JButton tglbtnNewToggleButton_1 = new JButton("\u652F\u4ED8\u5B9D");
 		tglbtnNewToggleButton_1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -742,25 +740,25 @@ public class Ui extends EShare{
 		});
 		tglbtnNewToggleButton_1.setFont(new Font("黑体", Font.PLAIN, 15));
 		panel.add(tglbtnNewToggleButton_1);
-		
+
 		JPanel panel_1 = new JPanel();
 		FlowLayout flowLayout = (FlowLayout) panel_1.getLayout();
 		flowLayout.setHgap(0);
 		flowLayout.setVgap(0);
 		helpPanel.add(panel_1, BorderLayout.NORTH);
-		
+
 		JLabel lblNewLabel = new JLabel("");
 		lblNewLabel.setIcon(res.getIcon("Icon", 64));
 		panel_1.add(lblNewLabel);
-		
+
 		JPanel panel_3 = new JPanel();
 		panel_1.add(panel_3);
 		panel_3.setLayout(new BorderLayout(0, 0));
-		
+
 		JLabel lblNewLabel_2 = new JLabel("\u63A8\u5E7F\u8054\u76DF");
 		panel_3.add(lblNewLabel_2, BorderLayout.CENTER);
 		lblNewLabel_2.setFont(new Font("黑体", Font.BOLD, 36));
-		
+
 		JLabel lblNewLabel_7 = new JLabel("<html><Font color=#000000>\u7248\u672C:"+Version+"</font></html>");
 		lblNewLabel_7.addMouseListener(new MouseAdapter() {
 			@Override
@@ -790,6 +788,11 @@ public class Ui extends EShare{
 				textarea.append("数据库版本:"+DataBase.Version+"\r\n");
 				textarea.append("资源库版本:"+Resources.Version+"\r\n");
 				textarea.append("SKU版本:"+SKU.Version+"\r\n");
+				textarea.append("自动推送版本:"+AutoPush.Version+"\r\n");
+				textarea.append("Push版本:"+Push.Version+"\r\n");
+				textarea.append("重构器版本:"+Rebuild.Version+"\r\n");
+				textarea.append("\r\n");
+				textarea.append("Power by SnowingSDK\r\n");
 				versionPanel.setLayout(new BorderLayout());
 				versionPanel.add(textarea, BorderLayout.CENTER);
 				JButton updateButton = new JButton("检查更新");
@@ -812,21 +815,21 @@ public class Ui extends EShare{
 		});
 		lblNewLabel_7.setFont(new Font("黑体", Font.PLAIN, 15));
 		panel_3.add(lblNewLabel_7, BorderLayout.SOUTH);
-		
+
 		JPanel panel_2 = new JPanel();
 		FlowLayout flowLayout_2 = (FlowLayout) panel_2.getLayout();
 		flowLayout_2.setVgap(0);
 		flowLayout_2.setAlignment(FlowLayout.LEFT);
 		panel_2.setBorder(new TitledBorder(new LineBorder(new Color(55, 55, 55), 1), "\u5E2E\u52A9\u6587\u6863", TitledBorder.LEADING, TitledBorder.TOP, new Font("黑体", Font.PLAIN, 15), new Color(0, 0, 0)));
 		helpPanel.add(panel_2, BorderLayout.CENTER);
-		
+
 		JPanel panel_4 = new JPanel();
 		panel_2.add(panel_4);
-		
+
 		JLabel lblNewLabel_9 = new JLabel("[PDF]\u65B0\u624B\u6559\u7A0B");
 		lblNewLabel_9.setFont(new Font("黑体", Font.PLAIN, 15));
 		panel_4.add(lblNewLabel_9);
-		
+
 		JLabel lblNewLabel_10 = new JLabel("<html><u><Font color=#000000>>></font></u></html>");
 		lblNewLabel_10.addMouseListener(new MouseAdapter() {
 			@Override
@@ -857,14 +860,14 @@ public class Ui extends EShare{
 		});
 		lblNewLabel_10.setFont(new Font("黑体", Font.PLAIN, 15));
 		panel_4.add(lblNewLabel_10);
-		
+
 		JPanel panel_4_1 = new JPanel();
 		panel_2.add(panel_4_1);
-		
+
 		JLabel lblNewLabel_9_1 = new JLabel("[PDF]\u8BBE\u7F6E\u7684\u4F7F\u7528");
 		lblNewLabel_9_1.setFont(new Font("黑体", Font.PLAIN, 15));
 		panel_4_1.add(lblNewLabel_9_1);
-		
+
 		JLabel lblNewLabel_10_1 = new JLabel("<html><u><Font color=#000000>>></font></u></html>");
 		lblNewLabel_10_1.addMouseListener(new MouseAdapter() {
 			@Override
@@ -895,14 +898,14 @@ public class Ui extends EShare{
 		});
 		lblNewLabel_10_1.setFont(new Font("黑体", Font.PLAIN, 15));
 		panel_4_1.add(lblNewLabel_10_1);
-		
+
 		JPanel panel_4_2 = new JPanel();
 		panel_2.add(panel_4_2);
-		
+
 		JLabel lblNewLabel_9_2 = new JLabel("[PDF]\u9AD8\u7EA7\u6559\u7A0B");
 		lblNewLabel_9_2.setFont(new Font("黑体", Font.PLAIN, 15));
 		panel_4_2.add(lblNewLabel_9_2);
-		
+
 		JLabel lblNewLabel_10_2 = new JLabel("<html><u><Font color=#000000>>></font></u></html>");
 		lblNewLabel_10_2.addMouseListener(new MouseAdapter() {
 			@Override
@@ -933,14 +936,14 @@ public class Ui extends EShare{
 		});
 		lblNewLabel_10_2.setFont(new Font("黑体", Font.PLAIN, 15));
 		panel_4_2.add(lblNewLabel_10_2);
-		
+
 		JPanel panel_4_3 = new JPanel();
 		panel_2.add(panel_4_3);
-		
+
 		JLabel lblNewLabel_9_3 = new JLabel("[PDF]\u5F00\u53D1\u8005\u6A21\u5F0F");
 		lblNewLabel_9_3.setFont(new Font("黑体", Font.PLAIN, 15));
 		panel_4_3.add(lblNewLabel_9_3);
-		
+
 		JLabel lblNewLabel_10_3 = new JLabel("<html><u><Font color=#000000>>></font></u></html>");
 		lblNewLabel_10_3.addMouseListener(new MouseAdapter() {
 			@Override
@@ -975,6 +978,9 @@ public class Ui extends EShare{
 	}
 
 
+	/**
+	 * @wbp.parser.entryPoint
+	 */
 	public static void autoPushPC() {
 		pushed = true;
 		pushTime = 0;
@@ -985,36 +991,40 @@ public class Ui extends EShare{
 		JPanel pushPanel = new JPanel();
 		dialog.getContentPane().add(pushPanel);
 		pushPanel.setLayout(new BorderLayout(0, 5));
-		
+
 		JPanel panel = new JPanel();
 		panel.setBorder(new TitledBorder(new LineBorder(new Color(0, 0, 0)), "\u63A8\u9001\u4FE1\u606F", TitledBorder.LEADING, TitledBorder.TOP, new Font("黑体", Font.PLAIN, 15), new Color(0, 0, 0)));
 		pushPanel.add(panel, BorderLayout.NORTH);
 		panel.setLayout(new GridLayout(0, 1, 2, 2));
-		
+
 		JLabel label_qq = new JLabel("QQ\u53F7:"+EShare.autoPushCommand.replace(" ", "").split("/")[1].replace("uin:", ""));
 		label_qq.setFont(new Font("黑体", Font.PLAIN, 15));
 		panel.add(label_qq);
-		
+
 		JLabel label_targetID = new JLabel("\u5BF9\u8BDDid:"+EShare.autoPushCommand.replace(" ", "").split("/")[2].replace("quicklunch:", ""));
 		label_targetID.setFont(new Font("黑体", Font.PLAIN, 15));
 		panel.add(label_targetID);
-		
+
+		JLabel label_nowPlatform = new JLabel("\u5E73\u53F0:"+(EShare.itemID.charAt(0)=='J' ? "京东" : (EShare.itemID.charAt(0)=='T') ? "淘宝" : "未知"));
+		label_nowPlatform.setFont(new Font("黑体", Font.PLAIN, 15));
+		panel.add(label_nowPlatform);
+
 		JLabel label_pushPreview = new JLabel("\u63A8\u9001\u9884\u89C8:"+itemName+"原价￥"+itemRealPrice+"，"+"卷后￥"+itemPrice+"链接:"+itemURL+"优惠劵:"+itemDiscountURL);
 		label_pushPreview.setFont(new Font("黑体", Font.PLAIN, 15));
 		panel.add(label_pushPreview);
-		
+
 		JLabel label_pushTime = new JLabel("\u5DF2\u63A8\u9001:0\u6B21(\u5931\u8D250\u6B21)");
 		label_pushTime.setFont(new Font("黑体", Font.PLAIN, 15));
 		panel.add(label_pushTime);
-		
+
 		JLabel label_nextPushTime = new JLabel("\u4E0B\u6B21\u63A8\u9001\u5728:0\u79D2\u540E");
 		label_nextPushTime.setFont(new Font("黑体", Font.PLAIN, 15));
 		panel.add(label_nextPushTime);
-		
+
 		JPanel panel_1 = new JPanel();
 		panel_1.setBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null));
 		pushPanel.add(panel_1, BorderLayout.SOUTH);
-		
+
 		JButton btnNewButton = new JButton("\u7EC8\u6B62\u63A8\u9001");
 		btnNewButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
@@ -1026,42 +1036,42 @@ public class Ui extends EShare{
 		});
 		btnNewButton.setFont(new Font("黑体", Font.PLAIN, 15));
 		panel_1.add(btnNewButton);
-		
+
 		JPanel panel_2 = new JPanel();
 		panel_2.setBorder(new TitledBorder(new LineBorder(new Color(0, 0, 0)), "\u63A8\u9001\u8BBE\u7F6E", TitledBorder.LEADING, TitledBorder.TOP, new Font("黑体", Font.PLAIN, 15), new Color(0, 0, 0)));
 		pushPanel.add(panel_2, BorderLayout.CENTER);
 		panel_2.setLayout(new BorderLayout(0, 0));
-		
+
 		JPanel panel_3 = new JPanel();
 		panel_2.add(panel_3, BorderLayout.CENTER);
 		panel_3.setLayout(new MigLayout("", "[]", "[]"));
-		
+
 		JLabel lblNewLabel_14_1 = new JLabel("\u63A8\u9001\u95F4\u9694");
 		lblNewLabel_14_1.setFont(new Font("黑体", Font.PLAIN, 15));
 		panel_3.add(lblNewLabel_14_1, "flowx,cell 0 0");
-		
-		
+
+
 		textField_1 = new JTextField(10);
 		textField_1.setText(""+EShare.pushDelay);
 		textField_1.setFont(new Font("黑体", Font.PLAIN, 15));
 		panel_3.add(textField_1, "cell 0 0");
-		
+
 		JLabel lblNewLabel_15_1 = new JLabel("s");
 		lblNewLabel_15_1.setFont(new Font("黑体", Font.PLAIN, 15));
 		panel_3.add(lblNewLabel_15_1, "cell 0 0");
-		
+
 		JPanel panel_4 = new JPanel();
 		FlowLayout flowLayout = (FlowLayout) panel_4.getLayout();
 		flowLayout.setAlignment(FlowLayout.RIGHT);
 		panel_2.add(panel_4, BorderLayout.SOUTH);
-		
+
 		JButton btnNewButton_1 = new JButton("\u5E94\u7528");
 		btnNewButton_1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				pushed = false;
 				//********SETTING CHANGE*********//
-				
-				
+
+
 				pushed = true;
 			}
 		});
@@ -1072,39 +1082,31 @@ public class Ui extends EShare{
 			public void run() {
 				while(pushed) {
 					//开始推送
-					itemRealPrice = SKU.getPrice(itemURL);
-					if(!"".equals(itemRealPrice)&&null!=itemRealPrice) {
-						//SKUloaded = true;
-						Clipboard clip = Toolkit.getDefaultToolkit().getSystemClipboard();  
-						Transferable tText = new StringSelection(itemName+"\r\n"+"原价￥"+itemRealPrice+"，"+"卷后￥"+itemPrice+"\r\n"+"链接:"+itemURL+"\r\n"+"优惠劵:"+itemDiscountURL);  
-						clip.setContents(tText, null);
-						DataBase.setItemState(itemID, false);
+					if(itemID.charAt(0)=='J') {
+						itemRealPrice = SKU.getPrice(itemURL);
+						if(!"".equals(itemRealPrice)&&null!=itemRealPrice) {
+							//SKUloaded = true;
+							tk.clipboard(itemName+"\r\n"+"原价￥"+itemRealPrice+"，"+"卷后￥"+itemPrice+"\r\n"+"链接:"+itemURL+"\r\n"+"优惠劵:"+itemDiscountURL);
+							Push.updateInfo();
+							isgetData = true;
+							label_pushPreview.setText("\u63A8\u9001\u9884\u89C8:"+itemName+"原价￥"+itemRealPrice+"，"+"卷后￥"+itemPrice+"链接:"+itemURL+"优惠劵:"+itemDiscountURL);
+							label_nowPlatform.setText("\u5E73\u53F0:"+(EShare.itemID.charAt(0)=='J' ? "京东" : (EShare.itemID.charAt(0)=='T') ? "淘宝" : "未知"));
+							labelReflash();
+						} else {
+							Push.updateInfo();
+							label_pushPreview.setText("\u63A8\u9001\u9884\u89C8:"+itemName+"原价￥"+itemRealPrice+"，"+"卷后￥"+itemPrice+"链接:"+itemURL+"优惠劵:"+itemDiscountURL);
+							label_nowPlatform.setText("\u5E73\u53F0:"+(EShare.itemID.charAt(0)=='J' ? "京东" : (EShare.itemID.charAt(0)=='T') ? "淘宝" : "未知"));
+							labelReflash();
+						}
+					} else if(EShare.itemID.charAt(0)=='T') {
+						tk.clipboard(itemName+"\r\n"+"原价￥"+itemRealPrice+"，"+"卷后￥"+itemPrice+"\r\n"+"淘口令:"+itemTaoKey);
+						Push.updateInfo();
 						isgetData = true;
-						if(DataBase.getEnableItemsNum()>0) {
-							copyableItems = DataBase.getEnableItemsNum();
-							String[] itemInfo = DataBase.getEnableItem();
-							updateItem(itemInfo);
-						} else {
-							copyableItems = 0;
-							String[] emptyItemInfo = {"","","","","","",""};
-							updateItem(emptyItemInfo);
-						}
-						label_pushPreview.setText("\u63A8\u9001\u9884\u89C8:"+itemName+"原价￥"+itemRealPrice+"，"+"卷后￥"+itemPrice+"链接:"+itemURL+"优惠劵:"+itemDiscountURL);
-						labelReflash();
-					} else {
-						DataBase.setItemState(itemID, false);
-						if(DataBase.getEnableItemsNum()>0) {
-							copyableItems = DataBase.getEnableItemsNum();
-							String[] itemInfo = DataBase.getEnableItem();
-							updateItem(itemInfo);
-						} else {
-							copyableItems = 0;
-							String[] emptyItemInfo = {"","","","","","",""};
-							updateItem(emptyItemInfo);
-						}
-						label_pushPreview.setText("\u63A8\u9001\u9884\u89C8:"+itemName+"原价￥"+itemRealPrice+"，"+"卷后￥"+itemPrice+"链接:"+itemURL+"优惠劵:"+itemDiscountURL);
+						label_pushPreview.setText("\u63A8\u9001\u9884\u89C8:"+itemName+"原价￥"+itemRealPrice+"，"+"卷后￥"+itemPrice+"淘口令:"+itemTaoKey);
+						label_nowPlatform.setText("\u5E73\u53F0:"+(EShare.itemID.charAt(0)=='J' ? "京东" : (EShare.itemID.charAt(0)=='T') ? "淘宝" : "未知"));
 						labelReflash();
 					}
+
 					if(isgetData) {
 						tk.runShell(autoPushCommand);//启动qq对话框
 						try {
@@ -1118,7 +1120,7 @@ public class Ui extends EShare{
 							rb.keyPress(KeyEvent.VK_ENTER);
 							rb.keyRelease(KeyEvent.VK_CONTROL);
 							rb.keyRelease(KeyEvent.VK_ENTER);
-							
+
 						} catch (AWTException | InterruptedException e1) {
 							// TODO Auto-generated catch block
 							e1.printStackTrace();
@@ -1145,7 +1147,7 @@ public class Ui extends EShare{
 				}
 			}
 		}, 10);
-		
+
 		dialog.setVisible(true);
 	}
 	public static void labelReflash() {
@@ -1168,7 +1170,7 @@ public class Ui extends EShare{
 			textField_CVSFile.setText(dataUrl);
 		}
 	}
-	
+
 	public static JButton buttonImgAdd(JButton button, String name) {
 		button.setText("");
 		button.setMargin(new Insets(0, 0, 0, 0));
