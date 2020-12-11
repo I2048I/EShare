@@ -11,7 +11,7 @@ import cn.snowing.io.Filer;
 import cn.snowing.system.HostOS;
 
 public class Setting {
-	final public static String Version = "V1.0.0_201002";
+	final public static String Version = "V1.0.0_201211";
 	static Filer file = new Filer();
 	
 	public static boolean loadSetting() {
@@ -34,6 +34,7 @@ public class Setting {
 							EShare.dataUrl = "".equals(EShare.dataUrl) ? ("dataUrl".equals(item) ? set : "") : EShare.dataUrl;
 							EShare.enableSmartReformat = false == EShare.enableSmartReformat ? ("enableSmartReformat".equals(item) ? Boolean.parseBoolean(set) : false) : EShare.enableSmartReformat;
 							EShare.enableAutoRemoveSame = false == EShare.enableAutoRemoveSame ? ("enableAutoRemoveSame".equals(item) ? Boolean.parseBoolean(set) : false) : EShare.enableAutoRemoveSame;
+							EShare.enableRandomAcquireItem = false == EShare.enableRandomAcquireItem ? ("enableRandomAcquireItem".equals(item) ? Boolean.parseBoolean(set) : false) : EShare.enableRandomAcquireItem;
 							EShare.leastRepayPoint = 0 == EShare.leastRepayPoint ? ("leastRepayPoint".equals(item) ? Integer.parseInt(set) : 0) : EShare.leastRepayPoint;
 							EShare.leastItemPrice = 0 == EShare.leastItemPrice ? ("leastItemPrice".equals(item) ? Integer.parseInt(set) : 0) : EShare.leastItemPrice;
 							EShare.highestItemPrice = 0 == EShare.highestItemPrice ? ("highestItemPrice".equals(item) ? Integer.parseInt(set) : 0) : EShare.highestItemPrice;
@@ -64,6 +65,7 @@ public class Setting {
 		file.write(dataURL, "dataUrl="+EShare.dataUrl, true);
 		file.write(dataURL, "enableSmartReformat="+EShare.enableSmartReformat, true);
 		file.write(dataURL, "enableAutoRemoveSame="+EShare.enableAutoRemoveSame, true);
+		file.write(dataURL, "enableRandomAcquireItem="+EShare.enableRandomAcquireItem, true);
 		file.write(dataURL, "leastRepayPoint="+EShare.leastRepayPoint, true);
 		file.write(dataURL, "leastItemPrice="+EShare.leastItemPrice, true);
 		file.write(dataURL, "highestItemPrice="+EShare.highestItemPrice, true);

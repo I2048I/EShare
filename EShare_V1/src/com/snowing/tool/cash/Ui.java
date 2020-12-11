@@ -21,6 +21,8 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -49,7 +51,7 @@ import net.miginfocom.swing.MigLayout;
 
 public class Ui extends EShare{
 
-	final public static String Version = "V1.0.0_201002";
+	final public static String Version = "V1.0.1_201211";
 
 	static Filer file = new Filer();
 	static Toolkits tk = new Toolkits();
@@ -59,6 +61,7 @@ public class Ui extends EShare{
 	private static JTextField textField_CVSFile;
 	private static JButton button_smartReformat = new JButton("ON");
 	private static JButton button_autoRemoveSame = new JButton("ON");
+	private static JButton button_randomAcquireItem = new JButton("ON");
 
 	protected static JFrame loadFrame = new JFrame();
 	protected static JLabel lblNewLabel_6 = new JLabel("\u8F7D\u5165\u6570\u636E\u4E2D...");
@@ -72,7 +75,8 @@ public class Ui extends EShare{
 	static boolean SKUloaded = false;//是否加载完成SKU读取操作
 	static boolean pushed = false;//是否Push
 	static boolean isgetData = false;//是否成功获取商品信息
-	static int pushTime = 0;
+	static int pushTime = 0;//推送成功次数
+	static int pushFailueTime = 0;//推送失败次数
 	//**********THREAD DEFINE*********//
 	static AutoSave autosave = new AutoSave();
 	private static JTextField textField_1;
@@ -128,7 +132,12 @@ public class Ui extends EShare{
 				allItems = DataBase.getAllItemsNums();
 				if(DataBase.getEnableItemsNum()>0) {
 					copyableItems = DataBase.getEnableItemsNum();
-					String[] itemInfo = DataBase.getEnableItem();
+					String[] itemInfo;
+					if(EShare.enableRandomAcquireItem) {
+						itemInfo = DataBase.getRandomEnableItem();
+					} else {
+						itemInfo = DataBase.getEnableItem();
+					}
 					updateItem(itemInfo);
 				}
 				loaded = Setting.loadSetting();
@@ -159,6 +168,9 @@ public class Ui extends EShare{
 		home();
 	}
 
+	/**
+	 * @wbp.parser.entryPoint
+	 */
 	public static void home() {
 		panel.removeAll();
 		panel.setLayout(new BorderLayout(5,5));
@@ -213,7 +225,7 @@ public class Ui extends EShare{
 		btncsv.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				Object[] options = {"京东联盟","淘宝联盟","取消"};
-				int Choose = JOptionPane.showOptionDialog(EShare.frame,"请选择要推广的平台(目前仅支持京东)","选择推广平台", JOptionPane.INFORMATION_MESSAGE,
+				int Choose = JOptionPane.showOptionDialog(EShare.frame,"请选择要推广的平台","选择推广平台", JOptionPane.INFORMATION_MESSAGE,
 						JOptionPane.INFORMATION_MESSAGE, null,options,options[1]);
 				Desktop dp = Desktop.getDesktop();
 				switch(Choose) {
@@ -258,7 +270,12 @@ public class Ui extends EShare{
 						}
 						if(DataBase.getEnableItemsNum()>0) {
 							copyableItems = DataBase.getEnableItemsNum();
-							String[] itemInfo = DataBase.getEnableItem();
+							String[] itemInfo;
+							if(EShare.enableRandomAcquireItem) {
+								itemInfo = DataBase.getRandomEnableItem();
+							} else {
+								itemInfo = DataBase.getEnableItem();
+							}
 							updateItem(itemInfo);
 						} else {
 							copyableItems = 0;
@@ -275,7 +292,12 @@ public class Ui extends EShare{
 						}
 						if(DataBase.getEnableItemsNum()>0) {
 							copyableItems = DataBase.getEnableItemsNum();
-							String[] itemInfo = DataBase.getEnableItem();
+							String[] itemInfo;
+							if(EShare.enableRandomAcquireItem) {
+								itemInfo = DataBase.getRandomEnableItem();
+							} else {
+								itemInfo = DataBase.getEnableItem();
+							}
 							updateItem(itemInfo);
 						} else {
 							copyableItems = 0;
@@ -360,21 +382,30 @@ public class Ui extends EShare{
 		JButton button_removeItem = new JButton("x");
 		button_removeItem.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				Object[] options = {"确定","取消"};
-				int Choose = JOptionPane.showOptionDialog(frame,"将该商品从可用列表中剔除。(非永久删除)","ID:"+itemID, JOptionPane.INFORMATION_MESSAGE,
-						JOptionPane.INFORMATION_MESSAGE, null,options,options[1]);
-				if(Choose==0) {
-					DataBase.setItemState(itemID, false);
-					if(DataBase.getEnableItemsNum()>0) {
-						copyableItems = DataBase.getEnableItemsNum();
-						String[] itemInfo = DataBase.getEnableItem();
-						updateItem(itemInfo);
-					} else {
-						copyableItems = 0;
-						String[] emptyItemInfo = {"","","","","","",""};
-						updateItem(emptyItemInfo);
+				if(itemID.equals("")||itemID.equals("null")||itemID==null) {
+					JOptionPane.showMessageDialog(frame, "当前无商品", "错误", JOptionPane.ERROR_MESSAGE);
+				} else {
+					Object[] options = {"确定","取消"};
+					int Choose = JOptionPane.showOptionDialog(frame,"将该商品从可用列表中剔除。(非永久删除)","ID:"+itemID, JOptionPane.INFORMATION_MESSAGE,
+							JOptionPane.INFORMATION_MESSAGE, null,options,options[1]);
+					if(Choose==0) {
+						DataBase.setItemState(itemID, false);
+						if(DataBase.getEnableItemsNum()>0) {
+							copyableItems = DataBase.getEnableItemsNum();
+							String[] itemInfo;
+							if(EShare.enableRandomAcquireItem) {
+								itemInfo = DataBase.getRandomEnableItem();
+							} else {
+								itemInfo = DataBase.getEnableItem();
+							}
+							updateItem(itemInfo);
+						} else {
+							copyableItems = 0;
+							String[] emptyItemInfo = {"","","","","","",""};
+							updateItem(emptyItemInfo);
+						}
+						labelReflash();
 					}
-					labelReflash();
 				}
 			}
 		});
@@ -385,15 +416,18 @@ public class Ui extends EShare{
 		JButton button_autoPush = new JButton(">");
 		button_autoPush.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				Object[] options = {"PC","安卓"};
-				int Choose = JOptionPane.showOptionDialog(frame,"选择推送方式","提示", JOptionPane.INFORMATION_MESSAGE,
-						JOptionPane.INFORMATION_MESSAGE, null,options,options[1]);
-				if(Choose==0) {
-					AutoPush.pc();
+				if(itemID.equals("")||itemID.equals("null")||itemID==null) {
+					JOptionPane.showMessageDialog(frame, "当前无商品", "错误", JOptionPane.ERROR_MESSAGE);
 				} else {
-					AutoPush.phone();
+					Object[] options = {"PC","安卓"};
+					int Choose = JOptionPane.showOptionDialog(frame,"选择推送方式","提示", JOptionPane.INFORMATION_MESSAGE,
+							JOptionPane.INFORMATION_MESSAGE, null,options,options[1]);
+					if(Choose==0) {
+						AutoPush.pc();
+					} else {
+						AutoPush.phone();
+					}
 				}
-
 			}
 		});
 		button_autoPush.setToolTipText("\u81EA\u52A8\u63A8\u9001");
@@ -435,7 +469,7 @@ public class Ui extends EShare{
 		JPanel panel_3_1 = new JPanel();
 		panel_3_1.setBorder(new TitledBorder(new LineBorder(new Color(55, 55, 55), 1), "文本数据处理", TitledBorder.LEADING, TitledBorder.TOP, new Font("黑体", Font.PLAIN, 15), new Color(0, 0, 0)));
 		panel_7.add(panel_3_1, BorderLayout.CENTER);
-		panel_3_1.setLayout(new MigLayout("", "[][]", "[][]"));
+		panel_3_1.setLayout(new MigLayout("", "[][]", "[][][]"));
 
 		JLabel label_smartReformat = new JLabel("\u667A\u80FD\u683C\u5F0F\u5316");
 		label_smartReformat.setFont(new Font("黑体", Font.PLAIN, 15));
@@ -470,6 +504,23 @@ public class Ui extends EShare{
 		});
 		button_autoRemoveSame.setFont(new Font("黑体", Font.PLAIN, 15));
 		panel_3_1.add(button_autoRemoveSame, "cell 1 1");
+		
+		JLabel label_randomAcquireItem = new JLabel("\u968F\u673A\u83B7\u53D6\u5546\u54C1");
+		label_randomAcquireItem.setFont(new Font("黑体", Font.PLAIN, 15));
+		panel_3_1.add(label_randomAcquireItem, "cell 0 2");
+		button_randomAcquireItem.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				if(enableRandomAcquireItem) {
+					enableRandomAcquireItem = false;
+				} else {
+					enableRandomAcquireItem = true;
+				}
+				button_randomAcquireItem = switchButton(button_randomAcquireItem, enableRandomAcquireItem);
+			}
+		});
+		
+		button_randomAcquireItem.setFont(new Font("黑体", Font.PLAIN, 15));
+		panel_3_1.add(button_randomAcquireItem, "cell 1 2");
 
 		//************ADD ITEMS DATA*************//
 		labelReflash();
@@ -477,6 +528,7 @@ public class Ui extends EShare{
 		if(loaded) {
 			button_smartReformat = switchButton(button_smartReformat, enableSmartReformat);
 			button_autoRemoveSame = switchButton(button_autoRemoveSame, enableAutoRemoveSame);
+			button_randomAcquireItem = switchButton(button_randomAcquireItem, enableRandomAcquireItem);
 			button_autoPush = buttonImgAdd(button_autoPush, "AutoPush");
 			button_removeItem = buttonImgAdd(button_removeItem, "Delete");
 			button_setting = buttonImgAdd(button_setting, "Setting");
@@ -536,21 +588,27 @@ public class Ui extends EShare{
 		new Timer().schedule(new TimerTask() {
 			public void run() {
 				if(itemID.charAt(0)=='J') {
-
-					if(null!=SKU.getPrice(itemURL)) {
+					itemRealPrice = SKU.getPrice(itemURL);
+					if(null!=itemRealPrice) {
 						label_loadingText.setText("正在获取原价...");
-						itemRealPrice = SKU.getPrice(itemURL);
 						if(!"".equals(itemRealPrice)&&null!=itemRealPrice) {
-							//SKUloaded = true;
-							label_loadingText.setText("正在将数据复制到剪切板...");
-							tk.clipboard(itemName+"\r\n"+"原价￥"+itemRealPrice+"，"+"卷后￥"+itemPrice+"\r\n"+"链接:"+itemURL+"\r\n"+"优惠劵:"+itemDiscountURL);
-							label_loadingText.setText("载入新商品数据中...");
-							Push.updateInfo();
-							labelReflash();
-							label_loadingText.setText("数据已成功获取...");
-							JOptionPane.showMessageDialog(frame,"获取完成!!");
-							SKUloaded = false;
-							dialog.setVisible(false);
+							if("ERROR404".equals(itemRealPrice)) {
+								label_loadingText.setText("获取商品原价失败...");
+								itemRealPrice = "0";
+								SKUloaded = false;
+								dialog.setVisible(false);
+							} else {
+								//SKUloaded = true;
+								label_loadingText.setText("正在将数据复制到剪切板...");
+								tk.clipboard(itemName+"\r\n"+"原价￥"+itemRealPrice+"，"+"卷后￥"+itemPrice+"\r\n"+"链接:"+itemURL+"\r\n"+"优惠劵:"+itemDiscountURL);
+								label_loadingText.setText("载入新商品数据中...");
+								Push.updateInfo();
+								labelReflash();
+								label_loadingText.setText("数据已成功获取...");
+								JOptionPane.showMessageDialog(frame,"获取完成!!");
+								SKUloaded = false;
+								dialog.setVisible(false);
+							}
 						} else {
 							label_loadingText.setText("获取商品原价失败...");
 							SKUloaded = true;
@@ -654,7 +712,12 @@ public class Ui extends EShare{
 				DataBase.setItemState(itemID, false);
 				if(DataBase.getEnableItemsNum()>0) {
 					copyableItems = DataBase.getEnableItemsNum();
-					String[] itemInfo = DataBase.getEnableItem();
+					String[] itemInfo;
+					if(EShare.enableRandomAcquireItem) {
+						itemInfo = DataBase.getRandomEnableItem();
+					} else {
+						itemInfo = DataBase.getEnableItem();
+					}
 					updateItem(itemInfo);
 				} else {
 					copyableItems = 0;
@@ -977,10 +1040,6 @@ public class Ui extends EShare{
 		dialog.setVisible(true);
 	}
 
-
-	/**
-	 * @wbp.parser.entryPoint
-	 */
 	public static void autoPushPC() {
 		pushed = true;
 		pushTime = 0;
@@ -988,6 +1047,16 @@ public class Ui extends EShare{
 		JDialog dialog = new JDialog(frame, "PC端Push", true);
 		dialog.setIconImage(res.getImage("Icon", 32));
 		dialog.setBounds(ScreenSize.width / 2 - 420 / 2, ScreenSize.height / 2 - 330 / 2, 420, 330);
+		dialog.addWindowListener(new WindowAdapter() {
+			public void windowClosing(WindowEvent e) {
+				super.windowClosing(e);
+				pushed = false;
+				pushTime = 0;
+				EShare.pushDelayCounted = 0;
+				isgetData = false;
+				dialog.setVisible(false);
+			}
+		}); 
 		JPanel pushPanel = new JPanel();
 		dialog.getContentPane().add(pushPanel);
 		pushPanel.setLayout(new BorderLayout(0, 5));
@@ -1030,6 +1099,7 @@ public class Ui extends EShare{
 			public void actionPerformed(ActionEvent arg0) {
 				pushed = false;
 				pushTime = 0;
+				EShare.pushDelayCounted = 0;
 				isgetData = false;
 				dialog.setVisible(false);
 			}
@@ -1069,8 +1139,11 @@ public class Ui extends EShare{
 		btnNewButton_1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				pushed = false;
+				EShare.pushDelayCounted = 0;
 				//********SETTING CHANGE*********//
-
+				if(textField_1.getText().length()>0) {
+					EShare.pushDelay = Integer.parseInt(textField_1.getText());
+				}
 
 				pushed = true;
 			}
@@ -1097,14 +1170,11 @@ public class Ui extends EShare{
 							label_pushPreview.setText("\u63A8\u9001\u9884\u89C8:"+itemName+"原价￥"+itemRealPrice+"，"+"卷后￥"+itemPrice+"链接:"+itemURL+"优惠劵:"+itemDiscountURL);
 							label_nowPlatform.setText("\u5E73\u53F0:"+(EShare.itemID.charAt(0)=='J' ? "京东" : (EShare.itemID.charAt(0)=='T') ? "淘宝" : "未知"));
 							labelReflash();
+							pushFailueTime+=1;
 						}
 					} else if(EShare.itemID.charAt(0)=='T') {
 						tk.clipboard(itemName+"\r\n"+"原价￥"+itemRealPrice+"，"+"卷后￥"+itemPrice+"\r\n"+"淘口令:"+itemTaoKey);
-						Push.updateInfo();
 						isgetData = true;
-						label_pushPreview.setText("\u63A8\u9001\u9884\u89C8:"+itemName+"原价￥"+itemRealPrice+"，"+"卷后￥"+itemPrice+"淘口令:"+itemTaoKey);
-						label_nowPlatform.setText("\u5E73\u53F0:"+(EShare.itemID.charAt(0)=='J' ? "京东" : (EShare.itemID.charAt(0)=='T') ? "淘宝" : "未知"));
-						labelReflash();
 					}
 
 					if(isgetData) {
@@ -1126,16 +1196,29 @@ public class Ui extends EShare{
 							e1.printStackTrace();
 						}
 						pushTime+=1;
+						Push.updateInfo();
+						if(null==itemID&&!"".equals(itemID)) {
+							JOptionPane.showMessageDialog(frame, "当前无商品", "错误", JOptionPane.ERROR_MESSAGE);
+							pushed = false;
+							pushTime = 0;
+							EShare.pushDelayCounted = 0;
+							isgetData = false;
+							dialog.setVisible(false);
+							labelReflash();
+						}
+						label_pushPreview.setText("\u63A8\u9001\u9884\u89C8:"+itemName+"原价￥"+itemRealPrice+"，"+"卷后￥"+itemPrice+"淘口令:"+itemTaoKey);
+						label_nowPlatform.setText("\u5E73\u53F0:"+(EShare.itemID.charAt(0)=='J' ? "京东" : (EShare.itemID.charAt(0)=='T') ? "淘宝" : "未知"));
+						labelReflash();
 					}
-					label_pushTime.setText("\u5DF2\u63A8\u9001:"+pushTime+"\u6B21(\u5931\u8D250\u6B21)");
+					label_pushTime.setText("\u5DF2\u63A8\u9001:"+pushTime+"\u6B21(\u5931\u8D25"+pushFailueTime+"\u6B21)");
 					//结束推送
 					//JDShare.pushDelay = 10;
 					isgetData = false;
-					for(int i=0;i<EShare.pushDelay;i++) {
+					for(EShare.pushDelayCounted=0;EShare.pushDelayCounted<EShare.pushDelay;EShare.pushDelayCounted++) {
 						if(!pushed) {
 							break;
 						} else {
-							label_nextPushTime.setText("\u4E0B\u6B21\u63A8\u9001\u5728:"+(EShare.pushDelay-i)+"\u79D2\u540E");
+							label_nextPushTime.setText("\u4E0B\u6B21\u63A8\u9001\u5728:"+(EShare.pushDelay-EShare.pushDelayCounted)+"\u79D2\u540E");
 							try {
 								Thread.sleep(1000);
 							} catch (InterruptedException e) {
@@ -1158,13 +1241,11 @@ public class Ui extends EShare{
 			label_itemID.setText("ID:"+itemID);
 			label_cashInfo.setText("折后价:￥"+itemPrice+"    返佣点数:"+itemRepayPencent+"%    返佣金:￥"+itemRepay);
 		} else {
-			if(null!=itemID&&!"".equals(itemID)) {
-				label_platform.setText("平台:未知");
-				label_enableItems.setText("可用商品:0");
-				label_itemName.setText("名称:无可用商品，请获取新的CSV文件");
-				label_itemID.setText("ID:0");
-				label_cashInfo.setText("折后价:￥0    返佣点数:0%    返佣金:￥0");
-			}
+			label_platform.setText("平台:未知");
+			label_enableItems.setText("可用商品:0");
+			label_itemName.setText("名称:无可用商品，请获取新的CSV文件");
+			label_itemID.setText("ID:Unknown ID");
+			label_cashInfo.setText("折后价:￥0    返佣点数:0%    返佣金:￥0");
 		}
 		if(null!=dataUrl&&!"".equals(dataUrl)) {
 			textField_CVSFile.setText(dataUrl);

@@ -2,6 +2,7 @@ package com.snowing.tool.cash;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import cn.snowing.io.Filer;
 import cn.snowing.io.Text;
@@ -9,7 +10,7 @@ import cn.snowing.system.HostOS;
 
 public class DataBase {
 
-	final public static String Version = "V1.0.0_201210";
+	final public static String Version = "V1.0.1_201211";
 
 	public static String dataUrl = new HostOS().getUserHome()+"//db//";
 	public static String databaseUrl = new HostOS().getUserHome()+"//db//eshare.db";
@@ -53,7 +54,12 @@ public class DataBase {
 					String itemDiscountPrice = info[15];
 					if(!"TÉÌÆ·id".equals(itemID)) {
 						String itemTaoKey = info[19];
-						itemTaoKey = "£¤"+itemTaoKey.split("£¤")[1]+"£¤";
+						try {
+							itemTaoKey = "£¤"+itemTaoKey.split("£¤")[1]+"£¤";
+						}catch(Exception e){
+							System.out.println("ID:"+itemID+" do not have discount paper.");
+							continue;
+						}
 						itemName = Rebuild.itemName(itemName);
 						if(!Rebuild.wordsBan(itemName)) {
 							file.write(databaseUrl, itemID+","+itemName+","+itemPrice+","+itemRepayPencent+","+itemRepay+","+itemDiscountPrice+","+itemTaoKey+","+"o", true);
@@ -194,6 +200,17 @@ public class DataBase {
 			}
 		}
 		return null;
+	}
+	
+	public static String[] getRandomEnableItem() {
+		if(getEnableItemsID().length>0) {
+			Random rand = new Random();
+			int itemNum = (getEnableItemsID().length-1)>1 ? rand.nextInt(getEnableItemsID().length-1) : 0;
+			String[] result = getItemData(getEnableItemsID()[itemNum]);
+			return result;
+		} else {
+			return null;
+		}
 	}
 
 	public static String[] getItemData(String id) {
