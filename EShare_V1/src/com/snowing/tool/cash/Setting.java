@@ -32,15 +32,15 @@ public class Setting {
 							String item = data[i].split("=")[0];
 							String set = data[i].split("=")[1];
 							EShare.dataUrl = "".equals(EShare.dataUrl) ? ("dataUrl".equals(item) ? set : "") : EShare.dataUrl;
-							EShare.enableSmartReformat = false == EShare.enableSmartReformat ? ("enableSmartReformat".equals(item) ? Boolean.parseBoolean(set) : false) : EShare.enableSmartReformat;
-							EShare.enableAutoRemoveSame = false == EShare.enableAutoRemoveSame ? ("enableAutoRemoveSame".equals(item) ? Boolean.parseBoolean(set) : false) : EShare.enableAutoRemoveSame;
-							EShare.enableRandomAcquireItem = false == EShare.enableRandomAcquireItem ? ("enableRandomAcquireItem".equals(item) ? Boolean.parseBoolean(set) : false) : EShare.enableRandomAcquireItem;
-							EShare.leastRepayPoint = 0 == EShare.leastRepayPoint ? ("leastRepayPoint".equals(item) ? Integer.parseInt(set) : 0) : EShare.leastRepayPoint;
-							EShare.leastItemPrice = 0 == EShare.leastItemPrice ? ("leastItemPrice".equals(item) ? Integer.parseInt(set) : 0) : EShare.leastItemPrice;
-							EShare.highestItemPrice = 0 == EShare.highestItemPrice ? ("highestItemPrice".equals(item) ? Integer.parseInt(set) : 0) : EShare.highestItemPrice;
+							EShare.enableSmartReformat = (false == EShare.enableSmartReformat) ? ("enableSmartReformat".equals(item) ? Boolean.parseBoolean(set) : false) : EShare.enableSmartReformat;
+							EShare.enableAutoRemoveSame = (false == EShare.enableAutoRemoveSame) ? ("enableAutoRemoveSame".equals(item) ? Boolean.parseBoolean(set) : false) : EShare.enableAutoRemoveSame;
+							EShare.enableRandomAcquireItem = (false == EShare.enableRandomAcquireItem) ? ("enableRandomAcquireItem".equals(item) ? Boolean.parseBoolean(set) : false) : EShare.enableRandomAcquireItem;
+							EShare.leastRepayPoint = (0 == EShare.leastRepayPoint) ? ("leastRepayPoint".equals(item) ? Integer.parseInt(set) : 0) : EShare.leastRepayPoint;
+							EShare.leastItemPrice = (0 == EShare.leastItemPrice) ? ("leastItemPrice".equals(item) ? Integer.parseInt(set) : 0) : EShare.leastItemPrice;
+							EShare.highestItemPrice = (0 == EShare.highestItemPrice) ? ("highestItemPrice".equals(item) ? Integer.parseInt(set) : 0) : EShare.highestItemPrice;
 							EShare.tempURL = "".equals(EShare.tempURL) ? ("tempURL".equals(item) ? set : "") : EShare.tempURL;
 							EShare.autoPushCommand = "".equals(EShare.autoPushCommand) ? ("autoPushCommand".equals(item) ? set : "") : EShare.autoPushCommand;
-							EShare.pushDelay = 0 == EShare.pushDelay ? ("pushDelay".equals(item) ? Integer.parseInt(set) : 0) : EShare.pushDelay;
+							EShare.pushDelay = (0 == EShare.pushDelay) ? ("pushDelay".equals(item) ? Integer.parseInt(set) : 0) : EShare.pushDelay;
 						}
 					} else {
 						continue;
@@ -70,7 +70,7 @@ public class Setting {
 		file.write(dataURL, "leastItemPrice="+EShare.leastItemPrice, true);
 		file.write(dataURL, "highestItemPrice="+EShare.highestItemPrice, true);
 		file.write(dataURL, "autoPushCommand="+EShare.autoPushCommand, true);
-		file.write(dataURL, "pushDelay="+EShare.autoPushCommand, true);
+		file.write(dataURL, "pushDelay="+EShare.pushDelay, true);
 		return true;
 	}
 	

@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import javax.swing.JOptionPane;
+
 import cn.snowing.io.Filer;
 import cn.snowing.io.Text;
 import cn.snowing.system.HostOS;
@@ -19,6 +21,12 @@ public class DataBase {
 	static Text text = new Text();
 
 	public static void buildCSVData(String url, String platform) {
+		int totalNeedBuildItem = 0;//所有需要建立数据库的商品
+		int buildedItem = 0;//已经存在的商品
+		int buildSuccessItem = 0;//成功导入数据库的商品
+		int buildFailueItem = 0;//失败导入数据库的商品
+		int bannedItem = 0;//因不符合ban_string而未被录入的商品
+		int discountPaperlessItem = 0;//因无优惠劵而未被录入的商品
 		if(!file.isExists(dataUrl)) {
 			file.mkdir(dataUrl);
 			file.createNewFile(databaseUrl);
@@ -27,6 +35,7 @@ public class DataBase {
 		}
 		if(file.isEmpty(databaseUrl)) {
 			for(String line : file.getAllLineString(url)) {
+				totalNeedBuildItem+=1;
 				String[] info = line.replace("\t", "").split(",");
 				if(platform.equals("JD")) {
 					String itemName = info[0];
@@ -40,8 +49,10 @@ public class DataBase {
 						itemName = Rebuild.itemName(itemName);
 						String itemID = "J"+itemSourcesUrl.replace("	", "").replace("http://item.jd.com/", "").replace(".html", "");
 						if(!Rebuild.wordsBan(itemName)) {
+							buildSuccessItem+=1;
 							file.write(databaseUrl, itemID+","+itemName+","+itemPrice+","+itemRepayPencent+","+itemRepay+","+itemURL+","+itemDiscountURL+","+"o", true);
 						} else {
+							bannedItem+=1;
 							System.out.println("ID:"+itemID+" has some word be banned.");
 						}
 					}
@@ -57,22 +68,29 @@ public class DataBase {
 						try {
 							itemTaoKey = "￥"+itemTaoKey.split("￥")[1]+"￥";
 						}catch(Exception e){
+							discountPaperlessItem+=1;
 							System.out.println("ID:"+itemID+" do not have discount paper.");
 							continue;
 						}
 						itemName = Rebuild.itemName(itemName);
 						if(!Rebuild.wordsBan(itemName)) {
+							buildSuccessItem+=1;
 							file.write(databaseUrl, itemID+","+itemName+","+itemPrice+","+itemRepayPencent+","+itemRepay+","+itemDiscountPrice+","+itemTaoKey+","+"o", true);
 						} else {
+							bannedItem+=1;
 							System.out.println("ID:"+itemID+" has some word be banned.");
 						}
 					}
+				} else {
+					buildFailueItem+=1;
+					System.out.println("Unknown item kinds");
 				}
 
 			}
 		} else {
 			String[] id = new String[(int)file.getLine(databaseUrl)];
 			for(int i=0;i<id.length;i++) {
+				totalNeedBuildItem+=1;
 				id[i] = file.getLineString(databaseUrl, i+1).split(",")[0];
 			}
 			String[] csvid = new String[(int)file.getLine(url)-1];
@@ -88,6 +106,7 @@ public class DataBase {
 				boolean match = false;
 				for(int x=0;x<id.length;x++) {
 					if(csvid[i].equals(id[x])) {
+						buildedItem+=1;
 						match = true;
 					}
 				}
@@ -113,8 +132,10 @@ public class DataBase {
 						itemName = Rebuild.itemName(itemName);
 						String itemID = "J"+itemSourcesUrl.replace("	", "").replace("http://item.jd.com/", "").replace(".html", "");
 						if(!Rebuild.wordsBan(itemName)) {
+							buildSuccessItem+=1;
 							file.write(databaseUrl, itemID+","+itemName+","+itemPrice+","+itemRepayPencent+","+itemRepay+","+itemURL+","+itemDiscountURL+","+"o", true);
 						} else {
+							bannedItem+=1;
 							System.out.println("ID:"+itemID+" has some word be banned.");
 						}
 					}
@@ -130,19 +151,25 @@ public class DataBase {
 						try {
 							itemTaoKey = "￥"+itemTaoKey.split("￥")[1]+"￥";
 						}catch(Exception e){
-							i++;
+							discountPaperlessItem+=1;
+							System.out.println("ID:"+itemID+" do not have discount paper.");
 							continue;
 						}
 						itemName = Rebuild.itemName(itemName);
 						if(!Rebuild.wordsBan(itemName)) {
+							buildSuccessItem+=1;
 							file.write(databaseUrl, itemID+","+itemName+","+itemPrice+","+itemRepayPencent+","+itemRepay+","+itemDiscountPrice+","+itemTaoKey+","+"o", true);
 						} else {
+							bannedItem+=1;
 							System.out.println("ID:"+itemID+" has some word be banned.");
 						}
 					}
 				}
 			}
 		}
+		buildFailueItem = buildFailueItem + bannedItem + discountPaperlessItem;
+		String[] data = {"数据源:"+url,"平台:"+platform,"源数据商品数目:"+totalNeedBuildItem+"个","成功导入个数:"+buildSuccessItem+"个","数据库中已存在商品个数:"+buildedItem+"个","失败导入个数:"+buildFailueItem+"个(无优惠卷:"+discountPaperlessItem+"个,不符合ban_string:"+discountPaperlessItem+"个)"};
+		JOptionPane.showMessageDialog(EShare.frame, data, "导入数据库详情...", JOptionPane.PLAIN_MESSAGE);
 	}
 
 	/**

@@ -75,8 +75,6 @@ public class Ui extends EShare{
 	static boolean SKUloaded = false;//是否加载完成SKU读取操作
 	static boolean pushed = false;//是否Push
 	static boolean isgetData = false;//是否成功获取商品信息
-	static int pushTime = 0;//推送成功次数
-	static int pushFailueTime = 0;//推送失败次数
 	//**********THREAD DEFINE*********//
 	static AutoSave autosave = new AutoSave();
 	private static JTextField textField_1;
@@ -168,9 +166,6 @@ public class Ui extends EShare{
 		home();
 	}
 
-	/**
-	 * @wbp.parser.entryPoint
-	 */
 	public static void home() {
 		panel.removeAll();
 		panel.setLayout(new BorderLayout(5,5));
@@ -538,13 +533,18 @@ public class Ui extends EShare{
 		panel.updateUI();
 	}
 
+	/**
+	 * @wbp.parser.entryPoint
+	 */
 	public static void setting() {
-		loadFrame.getContentPane().setLayout(new MigLayout("", "[]", "[]"));
+		loadFrame.getContentPane().setLayout(new BorderLayout(0, 0));
 		panel.removeAll();
 		panel.setLayout(new BorderLayout(5,5));
 		JPanel settingPanel = new JPanel();
 		panel.add(settingPanel);
 		settingPanel.setLayout(new BorderLayout(0, 0));
+		
+		panel.updateUI();
 	}
 
 	public static void copyLink() {
@@ -595,6 +595,7 @@ public class Ui extends EShare{
 							if("ERROR404".equals(itemRealPrice)) {
 								label_loadingText.setText("获取商品原价失败...");
 								itemRealPrice = "0";
+								pushFailueTime+=1;
 								SKUloaded = false;
 								dialog.setVisible(false);
 							} else {
@@ -606,6 +607,7 @@ public class Ui extends EShare{
 								labelReflash();
 								label_loadingText.setText("数据已成功获取...");
 								JOptionPane.showMessageDialog(frame,"获取完成!!");
+								pushTime+=1;
 								SKUloaded = false;
 								dialog.setVisible(false);
 							}
@@ -636,6 +638,7 @@ public class Ui extends EShare{
 					labelReflash();
 					label_loadingText.setText("数据已成功获取...");
 					JOptionPane.showMessageDialog(frame,"获取完成!!");
+					pushTime+=1;
 					SKUloaded = false;
 					dialog.setVisible(false);
 				}
@@ -696,7 +699,6 @@ public class Ui extends EShare{
 		JLabel label_discountPrice = new JLabel("优惠劵￥");
 		JTextField textField_discountPrice = new JTextField();
 		textField_discountPrice.setColumns(6);
-
 		JButton button_copyText = new JButton("复制文本");
 		button_copyText.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -725,6 +727,7 @@ public class Ui extends EShare{
 					updateItem(emptyItemInfo);
 				}
 				labelReflash();
+				pushTime+=1;
 				SKUloaded = false;
 				JOptionPane.showMessageDialog(frame,"已将内容复制到剪切板");
 				dialog.setVisible(false);
@@ -736,20 +739,15 @@ public class Ui extends EShare{
 		textField_nowPrice.setFont(new Font("黑体", Font.PLAIN, 15));
 		label_discountPrice.setFont(new Font("黑体", Font.PLAIN, 15));
 		textField_discountPrice.setFont(new Font("黑体", Font.PLAIN, 15));
-
 		insidePanel.add(label_price);
 		insidePanel.add(textField_price);
 		insidePanel.add(label_nowPrice);
 		insidePanel.add(textField_nowPrice);
 		insidePanel.add(label_discountPrice);
 		insidePanel.add(textField_discountPrice);
-
 		button_copyText.setFont(new Font("黑体", Font.PLAIN, 15));
-
 		rightPanel.add(button_copyText);
-
 		dialog.setVisible(true);
-		System.out.println("TEST");
 	}
 
 	public static void help() {
@@ -1042,7 +1040,6 @@ public class Ui extends EShare{
 
 	public static void autoPushPC() {
 		pushed = true;
-		pushTime = 0;
 		isgetData = false;
 		JDialog dialog = new JDialog(frame, "PC端Push", true);
 		dialog.setIconImage(res.getImage("Icon", 32));
@@ -1051,7 +1048,6 @@ public class Ui extends EShare{
 			public void windowClosing(WindowEvent e) {
 				super.windowClosing(e);
 				pushed = false;
-				pushTime = 0;
 				EShare.pushDelayCounted = 0;
 				isgetData = false;
 				dialog.setVisible(false);
@@ -1098,7 +1094,6 @@ public class Ui extends EShare{
 		btnNewButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				pushed = false;
-				pushTime = 0;
 				EShare.pushDelayCounted = 0;
 				isgetData = false;
 				dialog.setVisible(false);
@@ -1124,6 +1119,30 @@ public class Ui extends EShare{
 		textField_1 = new JTextField(10);
 		textField_1.setText(""+EShare.pushDelay);
 		textField_1.setFont(new Font("黑体", Font.PLAIN, 15));
+		textField_1.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyTyped(KeyEvent e) {
+				if(!"".equals(textField_1.getText())&&null!=textField_1.getText()) {
+					int length = textField_1.getText().length();
+					String patch = "0123456789.";
+					if(length<5) {
+						if (patch.indexOf(e.getKeyChar())< 0) {
+							e.consume();
+						} else if (patch.indexOf(e.getKeyChar())>= 0) {
+							//e.consume();
+						}
+					} else {
+						e.consume();
+					}
+				} else {
+					if ("0123456789.".indexOf(e.getKeyChar())>0) {
+					} else {
+						e.consume();
+					}
+				}
+			}
+		});
+		
 		panel_3.add(textField_1, "cell 0 0");
 
 		JLabel lblNewLabel_15_1 = new JLabel("s");
@@ -1170,7 +1189,7 @@ public class Ui extends EShare{
 							label_pushPreview.setText("\u63A8\u9001\u9884\u89C8:"+itemName+"原价￥"+itemRealPrice+"，"+"卷后￥"+itemPrice+"链接:"+itemURL+"优惠劵:"+itemDiscountURL);
 							label_nowPlatform.setText("\u5E73\u53F0:"+(EShare.itemID.charAt(0)=='J' ? "京东" : (EShare.itemID.charAt(0)=='T') ? "淘宝" : "未知"));
 							labelReflash();
-							pushFailueTime+=1;
+							autoPushFailueTime+=1;
 						}
 					} else if(EShare.itemID.charAt(0)=='T') {
 						tk.clipboard(itemName+"\r\n"+"原价￥"+itemRealPrice+"，"+"卷后￥"+itemPrice+"\r\n"+"淘口令:"+itemTaoKey);
@@ -1196,11 +1215,11 @@ public class Ui extends EShare{
 							e1.printStackTrace();
 						}
 						pushTime+=1;
+						autoPushTime+=1;
 						Push.updateInfo();
 						if(null==itemID&&!"".equals(itemID)) {
 							JOptionPane.showMessageDialog(frame, "当前无商品", "错误", JOptionPane.ERROR_MESSAGE);
 							pushed = false;
-							pushTime = 0;
 							EShare.pushDelayCounted = 0;
 							isgetData = false;
 							dialog.setVisible(false);
@@ -1210,7 +1229,7 @@ public class Ui extends EShare{
 						label_nowPlatform.setText("\u5E73\u53F0:"+(EShare.itemID.charAt(0)=='J' ? "京东" : (EShare.itemID.charAt(0)=='T') ? "淘宝" : "未知"));
 						labelReflash();
 					}
-					label_pushTime.setText("\u5DF2\u63A8\u9001:"+pushTime+"\u6B21(\u5931\u8D25"+pushFailueTime+"\u6B21)");
+					label_pushTime.setText("\u5DF2\u63A8\u9001:"+autoPushTime+"\u6B21(\u5931\u8D25"+autoPushFailueTime+"\u6B21)");
 					//结束推送
 					//JDShare.pushDelay = 10;
 					isgetData = false;

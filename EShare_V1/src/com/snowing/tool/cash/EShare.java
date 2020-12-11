@@ -18,7 +18,7 @@ public class EShare {
 	static int copyableItems = 0;//符合条件商品数
 	static String itemName = "";//商品名称
 	static String itemID = "";//商品ID
-	static String itemPrice = "";//商品价格
+	static String itemPrice = "";//商品卷后价格
 	static String itemRepayPencent = "";//返点
 	static String itemRepay = "";//佣金
 	static String itemURL = "";//推送链接
@@ -26,6 +26,12 @@ public class EShare {
 	static String itemDiscountURL = "";//优惠劵链接
 	static String itemRealPrice = "";//商品原价
 	static String itemTaoKey = "";//商品淘口令
+	
+	//************PROGRAM DATA*********//
+	static int pushTime = 0;//推送成功次数
+	static int pushFailueTime = 0;//推送失败次数
+	static int autoPushTime = 0;//自动推送成功次数
+	static int autoPushFailueTime = 0;//自动推送失败次数
 	
 	//*************SETTING*************//
 	static boolean enableSmartReformat = false;//自动格式化
@@ -37,7 +43,7 @@ public class EShare {
 	public static String tempURL = new HostOS().getUserHome()+"//tmp//";//缓存文件目录位置
 	static int autosaveTime = 1000;//自动保存时间(默认1000ms)
 	static String autoPushCommand = "";//自动推送参数
-	static int pushDelay = 1800;//自动推送时间(默认1800s)
+	static int pushDelay = 0;//自动推送时间(默认1800s)
 	static int pushDelayCounted = 0;//已记录时间
 	
 	//*************GUI*****************//
@@ -47,7 +53,7 @@ public class EShare {
 	
 	public EShare() {
 		frame.getContentPane().add(panel);
-		frame.setTitle("推广联盟V1 [DEBUG] 本程序遵循GPL_V3开源，禁止倒卖！！！");
+		frame.setTitle("推广联盟["+Version+"] 本程序遵循GPL_V3开源，禁止倒卖！！！");
 		frame.setBounds(ScreenSize.width / 2 - 600 / 2, ScreenSize.height / 2 - 400 / 2, 600, 400);
 		frame.setVisible(false);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -58,20 +64,19 @@ public class EShare {
 	public static void updateItem(String[] itemData) {
 		if(null!=itemData) {
 			if(null!=itemData[0]&&!"".equals(itemData[0])) {
+				//通用项目先赋值，减少代码长度
+				itemID = itemData[0];
+				itemName = itemData[1];
+				itemRepayPencent = itemData[3];
+				itemRepay = itemData[4];
 				if(itemData[0].charAt(0)=='J') {
-					itemName = itemData[1];
-					itemID = itemData[0];
+					//京东
 					itemPrice = itemData[2];
-					itemRepayPencent = itemData[3];
-					itemRepay = itemData[4];
 					itemURL = itemData[5];
 					itemDiscountURL = itemData[6];
 				} else if(itemData[0].charAt(0)=='T') {
-					itemName = itemData[1];
-					itemID = itemData[0];
+					//淘宝
 					itemRealPrice = itemData[2];
-					itemRepayPencent = itemData[3];
-					itemRepay = itemData[4];
 					itemDiscountPrice = itemData[5];
 					itemTaoKey = itemData[6];
 					itemPrice = "";
@@ -107,6 +112,7 @@ public class EShare {
 					itemPrice = leftNum1-leftNum2+"."+c;
 				}
 			} else {
+				//当获取itemData为空时
 				itemName = itemData[1];
 				itemID = itemData[0];
 				itemPrice = itemData[2];
