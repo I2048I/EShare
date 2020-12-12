@@ -78,6 +78,7 @@ public class Ui extends EShare{
 	//**********THREAD DEFINE*********//
 	static AutoSave autosave = new AutoSave();
 	private static JTextField textField_1;
+	//private static JTextField textField;
 
 	public static void load() {
 		frame.setVisible(false);
@@ -537,12 +538,19 @@ public class Ui extends EShare{
 	 * @wbp.parser.entryPoint
 	 */
 	public static void setting() {
-		loadFrame.getContentPane().setLayout(new BorderLayout(0, 0));
 		panel.removeAll();
 		panel.setLayout(new BorderLayout(5,5));
 		JPanel settingPanel = new JPanel();
 		panel.add(settingPanel);
-		settingPanel.setLayout(new BorderLayout(0, 0));
+		settingPanel.setLayout(new BorderLayout(5, 5));
+		JPanel northPanel = new JPanel();
+		northPanel.setLayout(new BorderLayout(5, 5));
+		JButton button_back = new JButton("<--");
+		northPanel.add(button_back, BorderLayout.WEST);
+		JPanel rightPanel = new JPanel();
+		rightPanel.setLayout(new BorderLayout(5, 5));
+		northPanel.add(rightPanel, BorderLayout.CENTER);
+		settingPanel.add(northPanel, BorderLayout.NORTH);
 		
 		panel.updateUI();
 	}
@@ -593,6 +601,7 @@ public class Ui extends EShare{
 						label_loadingText.setText("正在获取原价...");
 						if(!"".equals(itemRealPrice)&&null!=itemRealPrice) {
 							if("ERROR404".equals(itemRealPrice)) {
+								JOptionPane.showMessageDialog(EShare.frame,"获取失败，可能是链接已过期，请清除数据库重新获取。");
 								label_loadingText.setText("获取商品原价失败...");
 								itemRealPrice = "0";
 								pushFailueTime+=1;
@@ -838,7 +847,7 @@ public class Ui extends EShare{
 			public void mouseClicked(MouseEvent e) {
 				lblNewLabel_7.setText("<html><u><Font color=#0000ff>\u7248\u672C:"+Version+"</font></u></html>");
 				JDialog dialog2 = new JDialog(frame, "模块版本", true);
-				dialog2.setBounds(ScreenSize.width / 2 - 300 / 2, ScreenSize.height / 2 - 250 / 2, 300, 250);
+				dialog2.setBounds(ScreenSize.width / 2 - 300 / 2, ScreenSize.height / 2 - 280 / 2, 300, 280);
 				JPanel versionPanel = new JPanel();
 				dialog2.getContentPane().add(versionPanel);
 				JTextArea textarea = new JTextArea();
@@ -1181,14 +1190,8 @@ public class Ui extends EShare{
 							tk.clipboard(itemName+"\r\n"+"原价￥"+itemRealPrice+"，"+"卷后￥"+itemPrice+"\r\n"+"链接:"+itemURL+"\r\n"+"优惠劵:"+itemDiscountURL);
 							Push.updateInfo();
 							isgetData = true;
-							label_pushPreview.setText("\u63A8\u9001\u9884\u89C8:"+itemName+"原价￥"+itemRealPrice+"，"+"卷后￥"+itemPrice+"链接:"+itemURL+"优惠劵:"+itemDiscountURL);
-							label_nowPlatform.setText("\u5E73\u53F0:"+(EShare.itemID.charAt(0)=='J' ? "京东" : (EShare.itemID.charAt(0)=='T') ? "淘宝" : "未知"));
-							labelReflash();
 						} else {
 							Push.updateInfo();
-							label_pushPreview.setText("\u63A8\u9001\u9884\u89C8:"+itemName+"原价￥"+itemRealPrice+"，"+"卷后￥"+itemPrice+"链接:"+itemURL+"优惠劵:"+itemDiscountURL);
-							label_nowPlatform.setText("\u5E73\u53F0:"+(EShare.itemID.charAt(0)=='J' ? "京东" : (EShare.itemID.charAt(0)=='T') ? "淘宝" : "未知"));
-							labelReflash();
 							autoPushFailueTime+=1;
 						}
 					} else if(EShare.itemID.charAt(0)=='T') {

@@ -1,7 +1,5 @@
 package com.snowing.tool.cash;
 
-import javax.swing.JOptionPane;
-
 import cn.snowing.io.Download;
 import cn.snowing.io.Filer;
 import cn.snowing.io.Text;
@@ -18,7 +16,6 @@ public class SKU {
 		String outUrl_2 = EShare.tempURL + EShare.itemID + ".tmp";
 		dl.get(url, outUrl_1);
 		if(file.isEmpty(outUrl_1)) {
-			JOptionPane.showMessageDialog(EShare.frame,"获取失败，可能是链接已过期，请清除数据库重新获取。");
 			return "ERROR404";
 		} else {
 			String[] url_1 = text.grep(outUrl_1, "var hrl=", '\'');

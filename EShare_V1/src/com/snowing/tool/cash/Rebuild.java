@@ -14,9 +14,10 @@ public class Rebuild {
 	}
 	
 	/**
+	 * 基于ban_string文件提供的字符屏蔽商品进入数据库
 	 * 
-	 * @param str
-	 * @return
+	 * @param str 商品名词
+	 * @return 是否被ban
 	 */
 	public static boolean wordsBan(String str) {
 		final String banstrUrl = new HostOS().getUserHome()+"\\conf\\ban_string.txt";

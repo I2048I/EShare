@@ -1,5 +1,7 @@
 package com.snowing.tool.cash;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -9,10 +11,14 @@ import javax.swing.JOptionPane;
 import cn.snowing.io.Filer;
 import cn.snowing.io.Text;
 import cn.snowing.system.HostOS;
+import jxl.Cell;
+import jxl.Sheet;
+import jxl.Workbook;
+import jxl.read.biff.BiffException;
 
 public class DataBase {
 
-	final public static String Version = "V1.0.1_201211";
+	final public static String Version = "V1.1.1_201212";
 
 	public static String dataUrl = new HostOS().getUserHome()+"//db//";
 	public static String databaseUrl = new HostOS().getUserHome()+"//db//eshare.db";
@@ -20,6 +26,12 @@ public class DataBase {
 	static Filer file = new Filer();
 	static Text text = new Text();
 
+	/**
+	 * 以csv文件建立数据库，xls文件也是通过转换后在使用此方法建库
+	 * 
+	 * @param url csv文件路径
+	 * @param platform 商品平台
+	 */
 	public static void buildCSVData(String url, String platform) {
 		int totalNeedBuildItem = 0;//所有需要建立数据库的商品
 		int buildedItem = 0;//已经存在的商品
@@ -90,11 +102,11 @@ public class DataBase {
 		} else {
 			String[] id = new String[(int)file.getLine(databaseUrl)];
 			for(int i=0;i<id.length;i++) {
-				totalNeedBuildItem+=1;
 				id[i] = file.getLineString(databaseUrl, i+1).split(",")[0];
 			}
 			String[] csvid = new String[(int)file.getLine(url)-1];
 			for(int i=0;i<csvid.length;i++) {
+				totalNeedBuildItem+=1;
 				if(platform.equals("JD")) {
 					csvid[i] = "J"+file.getLineString(url, i+2).split(",")[1].replace("	", "").replace("http://item.jd.com/", "").replace(".html", "");
 				} else if(platform.equals("TB")) {
@@ -168,20 +180,55 @@ public class DataBase {
 			}
 		}
 		buildFailueItem = buildFailueItem + bannedItem + discountPaperlessItem;
-		String[] data = {"数据源:"+url,"平台:"+platform,"源数据商品数目:"+totalNeedBuildItem+"个","成功导入个数:"+buildSuccessItem+"个","数据库中已存在商品个数:"+buildedItem+"个","失败导入个数:"+buildFailueItem+"个(无优惠卷:"+discountPaperlessItem+"个,不符合ban_string:"+discountPaperlessItem+"个)"};
+		String[] data = {"数据源:"+url,"平台:"+(platform.charAt(0)=='J' ? "京东" : (platform.charAt(0)=='T') ? "淘宝" : "未知"),"源数据商品数目:"+totalNeedBuildItem+"个","成功导入个数:"+buildSuccessItem+"个","数据库中已存在商品个数:"+buildedItem+"个","失败导入个数:"+buildFailueItem+"个(无优惠卷:"+discountPaperlessItem+"个,不符合ban_string:"+bannedItem+"个)"};
 		JOptionPane.showMessageDialog(EShare.frame, data, "导入数据库详情...", JOptionPane.PLAIN_MESSAGE);
 	}
 
 	/**
-	 * 建立以xls文件为数据源的数据库
+	 * 建立以xls文件为数据源的数据库，
 	 * 主要适用于淘宝联盟
 	 * 
 	 * @param url xls文件地址
 	 */
 	public static void buildXLSData(String url, String platform) {
-
+		//将xls转为csv文件保存
+		String filename = EShare.tempURL+"xls2csv_"+new Random().nextInt(99999999)+".csv";
+		try {
+			// 从文件流中获取Excel工作区对象（WorkBook）
+			Workbook wb = Workbook.getWorkbook(new File(url)); 
+			// 从工作区中取得页（Sheet）,默认单独一页，第一页
+			Sheet sheet = wb.getSheet(0); 
+			// 测试：循环打印Excel表中的内容
+			for (int i = 0; i < sheet.getRows(); i++) { 
+				String line = "";
+				for (int j = 0; j < sheet.getColumns(); j++) {
+					Cell cell = sheet.getCell(j, i);
+					if(j != sheet.getColumns()-1) {
+						line = line + cell.getContents() + ",";
+					}
+					//System.out.print(cell.getContents()+",");
+				}
+				if(!file.isExists(filename)) {
+					file.createNewFile(filename);
+				} else {
+					//抱错
+				}
+				file.write(filename, line, true);
+			}
+		} catch (BiffException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		//使用csv方式导入
+		buildCSVData(filename, platform);
 	}
 
+	/**
+	 * 获取数据库中总商品个数
+	 * 
+	 * @return 总商品个数
+	 */
 	public static int getAllItemsNums() {
 		if(!file.isExists(dataUrl)) {
 			file.mkdir(dataUrl);
@@ -228,7 +275,7 @@ public class DataBase {
 		}
 		return null;
 	}
-	
+
 	public static String[] getRandomEnableItem() {
 		if(getEnableItemsID().length>0) {
 			Random rand = new Random();
@@ -250,22 +297,8 @@ public class DataBase {
 		return null;
 	}
 
-	public String toShare(String id) {
-
-		return null;
-	}
-
-	public String[] getCSV(String url) {
-		return null;
-	}
-
 	public static void setItemState(String id, boolean state) {
 		int line = text.findLine(databaseUrl, id)[0];
-		if(state) {
-			file.replace(databaseUrl, line, ",x", ",o");
-		} else {
-			file.replace(databaseUrl, line, ",o", ",x");
-		}
-
+		file.replace(databaseUrl, line, state==true?",x":",o", state==true?",o":",x");
 	}
 }

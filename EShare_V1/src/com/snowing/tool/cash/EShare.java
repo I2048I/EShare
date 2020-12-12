@@ -40,7 +40,7 @@ public class EShare {
 	static int leastRepayPoint = 0;//最少返佣率
 	static int leastItemPrice = 0;//目标商品最低价格
 	static int highestItemPrice = 0;//目标商品最高价格
-	public static String tempURL = new HostOS().getUserHome()+"//tmp//";//缓存文件目录位置
+	public static String tempURL = new HostOS().getUserHome()+"\\tmp\\";//缓存文件目录位置
 	static int autosaveTime = 1000;//自动保存时间(默认1000ms)
 	static String autoPushCommand = "";//自动推送参数
 	static int pushDelay = 0;//自动推送时间(默认1800s)
@@ -130,6 +130,7 @@ public class EShare {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		//DataBase.buildXLSData("D:\\Test\\创建于 2020-12-11 15_45_53-2020-12-11.xls", "");
 		new EShare();
 	}
 }
